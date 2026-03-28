@@ -18,7 +18,7 @@
 ## Repository layout
 
 - `project/` — Spring Boot application (Maven). Local default port **8081** (cloud uses `PORT`).
-- `digital-sentinel/` — Vite + React SPA. Point `VITE_GUARDIAN_API_URL` at your backend (e.g. `http://localhost:8081`).
+- `digital-sentinel/` — Vite + React SPA. **`.env.production`** targets `https://ourcursorhack-production.up.railway.app`; **`.env.development`** uses `http://localhost:8081`. Override with `VITE_GUARDIAN_API_URL` if needed.
 
 ### Deploy for free (hackathon)
 
