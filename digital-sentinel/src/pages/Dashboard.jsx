@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { analyzeSafety, getTrends, chatAssistant } from '../services/api';
+import { analyzeSafety, getTrends, chatAssistant, extractCityKey } from '../services/api';
+import IntelligenceFusion from '../components/dashboard/IntelligenceFusion';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,6 +17,13 @@ export default function Dashboard() {
   const profile = location.state?.profile || "solo";
   const time = location.state?.time || new Date().getHours();
   const coords = location.state?.coords || null;
+  const cityKey = useMemo(() => extractCityKey(searchTarget), [searchTarget]);
+
+  const trendMax = useMemo(() => {
+    const w = trends?.weeklyIncidents;
+    if (!Array.isArray(w) || !w.length) return 1;
+    return Math.max(...w, 1);
+  }, [trends]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,15 +139,43 @@ export default function Dashboard() {
               View Live Route & Heatmap
             </button>
             {trends && (
-              <div className="ml-4 mt-3 bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm">
-                <div className="font-bold text-slate-700">Latest Trends</div>
-                <div className="text-xs text-slate-600 mt-1">{trends.overallTrend || 'Unavailable'}</div>
-                {trends.weeklyIncidents && <div className="text-xs text-slate-500 mt-2">Weekly: {trends.weeklyIncidents.join(', ')}</div>}
+              <div className="w-full mt-4 lg:mt-0 lg:ml-4 lg:max-w-md bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-700 shadow-xl text-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">/api/trends</p>
+                    <p className="font-headline font-extrabold text-lg">Incident pulse</p>
+                  </div>
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${trends.overallTrend === 'Improving' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/20 text-amber-200 border-amber-500/30'}`}>
+                    {trends.overallTrend || 'Tracking'}
+                  </span>
+                </div>
+                {Array.isArray(trends.weeklyIncidents) && (
+                  <div className="flex gap-2 h-28">
+                    {trends.weeklyIncidents.map((n, i) => (
+                      <div key={i} className="flex-1 h-full flex flex-col justify-end items-center gap-1 min-w-0">
+                        <div
+                          className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-cyan-400 min-h-[6px] transition-all duration-500 shadow-[0_0_12px_rgba(59,130,246,0.35)]"
+                          style={{ height: `${Math.max(10, (n / trendMax) * 100)}%` }}
+                          title={`${n} incidents`}
+                        />
+                        <span className="text-[0.6rem] text-slate-500 font-bold">D{i + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </section>
+
+      {data && (
+        <IntelligenceFusion
+          city={cityKey}
+          safetyScore={data.safetyScore}
+          riskLevel={data.riskLevel}
+        />
+      )}
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl p-8 shadow-md border border-slate-200/50">
@@ -163,7 +199,10 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-2xl p-8 flex flex-col gap-6 shadow-md border border-slate-200/50">
-          <h3 className="font-headline text-xl font-extrabold text-[#0e1c2b]">System Advisories</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-headline text-xl font-extrabold text-[#0e1c2b]">System advisories</h3>
+            <span className="text-[0.6rem] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-md">/api/safety</span>
+          </div>
           <div className="space-y-6">
             {data?.signals?.length > 0 ? data.signals.map((s, idx) => (
               <div key={idx} className="flex items-start gap-4">
@@ -178,16 +217,20 @@ export default function Dashboard() {
             )) : (
                <p className="text-sm text-slate-500">No active advisories.</p>
             )}
-            <div className="pt-4 border-t mt-2">
-              <h4 className="text-sm font-bold mb-2">Ask Sentinel Assistant</h4>
-              <form onSubmit={sendChat} className="flex items-center gap-2">
-                <input value={chatQuery} onChange={(e) => setChatQuery(e.target.value)} placeholder="Ask about this area..." className="flex-1 px-3 py-2 border rounded-lg text-sm outline-none" />
-                <button type="submit" disabled={assistantLoading} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">{assistantLoading ? '...' : 'Send'}</button>
+            <div className="pt-4 border-t mt-2 rounded-xl bg-slate-50 p-4 border border-slate-100">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-blue-600 text-lg">support_agent</span>
+                <h4 className="text-sm font-extrabold text-[#0e1c2b]">Sentinel assistant</h4>
+                <span className="text-[0.55rem] font-bold text-slate-400 uppercase ml-auto">/api/assistant/chat</span>
+              </div>
+              <form onSubmit={sendChat} className="flex flex-col sm:flex-row gap-2">
+                <input value={chatQuery} onChange={(e) => setChatQuery(e.target.value)} placeholder={`Ask about ${cityKey}…`} className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/30 bg-white" />
+                <button type="submit" disabled={assistantLoading} className="bg-[#0e1c2b] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors disabled:opacity-60">{assistantLoading ? '…' : 'Send'}</button>
               </form>
-              <div className="mt-3 max-h-40 overflow-y-auto space-y-2">
+              <div className="mt-3 max-h-48 overflow-y-auto space-y-2 custom-scrollbar">
                 {chatMessages.map((m, i) => (
-                  <div key={i} className={`p-2 rounded ${m.from === 'user' ? 'bg-blue-50 text-right' : 'bg-slate-100'}`}>
-                    <div className="text-xs text-slate-700">{m.text}</div>
+                  <div key={i} className={`p-3 rounded-xl text-xs leading-relaxed ${m.from === 'user' ? 'bg-blue-600 text-white ml-6' : 'bg-white border border-slate-100 mr-6 text-slate-700'}`}>
+                    {m.text}
                   </div>
                 ))}
               </div>

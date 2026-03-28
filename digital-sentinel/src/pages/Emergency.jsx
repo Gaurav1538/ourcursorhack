@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getEmergencyServices, getAllIncidents, reportIncident } from '../services/api';
+import {
+  getEmergencyServices,
+  getAllIncidents,
+  reportIncident,
+  getWeatherByCity,
+  getCrimeNews,
+  extractCityKey
+} from '../services/api';
+
+function serviceVisual(type) {
+  if (type === 'hospital') return { icon: 'medical_services', bg: 'bg-rose-50 text-rose-600' };
+  if (type === 'fire') return { icon: 'fire_truck', bg: 'bg-orange-50 text-orange-600' };
+  if (type === 'police') return { icon: 'local_police', bg: 'bg-blue-50 text-blue-600' };
+  return { icon: 'shield', bg: 'bg-slate-100 text-slate-600' };
+}
 
 const ContactCard = ({ name, role, imgSrc, btn1, btn2, icon1, icon2, isPrimary }) => (
   <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-6 hover:shadow-xl transition-all duration-300 group">
@@ -35,17 +49,36 @@ export default function Emergency() {
   const [reportDesc, setReportDesc] = useState('');
   const [reportLocation, setReportLocation] = useState('');
   const [reporting, setReporting] = useState(false);
+  const [meshWx, setMeshWx] = useState([]);
+  const [wxLoading, setWxLoading] = useState(true);
+  const [crimeFeed, setCrimeFeed] = useState([]);
+  const [crimeLoading, setCrimeLoading] = useState(true);
+
+  const apiCity = locationContext === 'current' ? 'London' : extractCityKey(customLocation || 'London');
 
   useEffect(() => {
     const fetchServices = async () => {
       setLoadingServices(true);
-      const queryCity = locationContext === 'current' ? 'London' : (customLocation || 'London');
-      const data = await getEmergencyServices(queryCity);
-      setServices(data.slice(0, 2)); // Show top 2
+      const data = await getEmergencyServices(apiCity);
+      setServices(Array.isArray(data) ? data : []);
       setLoadingServices(false);
     };
     fetchServices();
-  }, [locationContext, customLocation]);
+  }, [locationContext, customLocation, apiCity]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setWxLoading(true);
+    setCrimeLoading(true);
+    Promise.all([getWeatherByCity(apiCity), getCrimeNews(apiCity)]).then(([w, n]) => {
+      if (cancelled) return;
+      setMeshWx(Array.isArray(w) ? w.slice(0, 5) : []);
+      setCrimeFeed(Array.isArray(n) ? n.slice(0, 5) : []);
+      setWxLoading(false);
+      setCrimeLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [apiCity]);
 
   useEffect(() => {
     const fetchIncidents = async () => {
@@ -118,6 +151,39 @@ export default function Emergency() {
         <p className="text-lg text-slate-500 font-medium leading-relaxed">
           Immediate assistance is standing by. Confirm your incident location and authorize deployment to notify local authorities via the Guardian API.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 relative z-10">
+        <div className="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-6 shadow-sm">
+          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-sky-800 mb-3">Operational weather · /api/weather</p>
+          {wxLoading ? (
+            <p className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined animate-spin text-lg">sync</span> Loading…</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {meshWx.map((row, i) => (
+                <li key={i} className="flex justify-between gap-4 border-b border-sky-100 pb-2 last:border-0">
+                  <span className="font-bold text-slate-800">{row.day || `Period ${i + 1}`}</span>
+                  <span className="text-sky-900 text-right">{row.temperature} · {row.weather}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-6 shadow-sm">
+          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-rose-900 mb-3">Situational headlines · /api/news/crime</p>
+          {crimeLoading ? (
+            <p className="text-sm text-slate-500">Loading headlines…</p>
+          ) : (
+            <ul className="space-y-2 text-sm max-h-40 overflow-y-auto custom-scrollbar">
+              {crimeFeed.map((item, i) => (
+                <li key={i}>
+                  <a href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="font-semibold text-rose-950 hover:underline line-clamp-2">{item.title}</a>
+                  <span className="text-xs text-rose-700/80 block">{item.source}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-20 relative z-10">
@@ -223,11 +289,13 @@ export default function Emergency() {
             <div className="space-y-4">
               {loadingServices ? (
                  <p className="text-sm text-slate-500 flex items-center gap-2"><span className="material-symbols-outlined animate-spin">sync</span> Fetching from Guardian API...</p>
-              ) : services.map((svc, idx) => (
+              ) : services.map((svc, idx) => {
+                const v = serviceVisual(svc.type);
+                return (
                 <div key={idx} className="bg-white p-5 rounded-2xl flex items-center justify-between group hover:shadow-lg transition-all duration-300 border border-slate-100">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ${svc.type === 'hospital' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'}`}>
-                      <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>{svc.type === 'hospital' ? 'medical_services' : 'local_police'}</span>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ${v.bg}`}>
+                      <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>{v.icon}</span>
                     </div>
                     <div>
                       <p className="font-headline font-bold text-slate-900">{svc.name}</p>
@@ -238,7 +306,8 @@ export default function Emergency() {
                       <span className="material-symbols-outlined text-[18px]">near_me</span>
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           
             <div className="mt-6 bg-white p-5 rounded-2xl border border-slate-100">

@@ -7,12 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-<<<<<<< HEAD
     "preview": "vite preview",
     "test": "vitest"
-=======
-    "preview": "vite preview"
->>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.2",
@@ -32,14 +28,10 @@
     "globals": "^17.4.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
-<<<<<<< HEAD
     "vite": "^8.0.1",
     "vitest": "^1.0.0",
-    "@testing-library/react": "^14.0.0",
+    "@testing-library/react": "^16.3.0",
     "@testing-library/jest-dom": "^6.0.0",
     "jsdom": "^22.1.0"
-=======
-    "vite": "^8.0.1"
->>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
   }
 }

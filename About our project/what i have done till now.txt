@@ -1,0 +1,1667 @@
+my file structure
+├───.idea
+├───digital-sentinel
+│   ├───public
+│   └───src
+│       ├───assets
+│       ├───components
+│       │   └───layout
+│       ├───pages
+│       └───services
+└───project
+    ├───.mvn
+    │   └───wrapper
+    ├───src
+    │   ├───main
+    │   │   ├───java
+    │   │   │   └───com
+    │   │   │       └───RiskAnalyse
+    │   │   │           └───project
+    │   │   │               ├───config
+    │   │   │               ├───constants
+    │   │   │               ├───controller
+    │   │   │               ├───data
+    │   │   │               ├───dto
+    │   │   │               │   ├───request
+    │   │   │               │   └───response
+    │   │   │               ├───exception
+    │   │   │               ├───model
+    │   │   │               │   └───embedded
+    │   │   │               ├───repository
+    │   │   │               ├───service
+    │   │   │               └───util
+    │   │   └───resources
+    │   │       ├───static
+    │   │       └───templates
+    │   └───test
+    │       └───java
+    │           └───com
+    │               └───RiskAnalyse
+    │                   └───project
+    └───target
+        ├───classes
+        │   └───com
+        │       └───RiskAnalyse
+        │           └───project
+        │               ├───config
+        │               ├───constants
+        │               ├───controller
+        │               ├───data
+        │               ├───dto
+        │               │   ├───request
+        │               │   └───response
+        │               ├───exception
+        │               ├───model
+        │               │   └───embedded
+        │               ├───repository
+        │               ├───service
+        │               └───util
+        └───generated-sources
+            └───annotations
+
+now my code for each filer
+package com.RiskAnalyse.project.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+
+@Configuration
+public class AiConfig {
+
+    @Bean
+    public ChatClient chatClient(ChatModel chatModel) {
+        return ChatClient.builder(chatModel).build();
+    }
+}
+
+package com.RiskAnalyse.project.config;
+
+
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.*;
+
+import java.util.List;
+
+@Configuration
+public class CorsConfig {
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+
+        config.setAllowCredentials(false); // important
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+    }
+}package com.RiskAnalyse.project.config;
+
+
+
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
+
+        return http.build();
+    }
+}
+package com.RiskAnalyse.project.config;
+
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class SwaggerConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("Guardian Safety API")
+                        .version("1.0")
+                        .description("AI-powered safety intelligence backend"));
+    }
+}package com.RiskAnalyse.project.constants;
+
+public class AppConstants {
+}
+package com.RiskAnalyse.project.constants;
+
+public class IncidentType {
+} package com.RiskAnalyse.project.constants;
+
+public class RiskLevel {
+}
+ package com.RiskAnalyse.project.controller;
+
+import com.RiskAnalyse.project.service.AiService;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/ai")
+@CrossOrigin("*")
+public class AiController {
+
+    private final AiService aiService;
+
+    public AiController(AiService aiService) {
+        this.aiService = aiService;
+    }
+
+    @GetMapping("/ask")
+    public String ask(@RequestParam String question) {
+        return aiService.chat(question);
+    }
+} 
+package com.RiskAnalyse.project.controller;
+
+import com.RiskAnalyse.project.dto.response.NewsResponseDto;
+import com.RiskAnalyse.project.service.ApifyService;
+
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/news")
+@CrossOrigin("*")
+public class ApifyController {
+
+    private final ApifyService apifyService;
+
+    public ApifyController(ApifyService apifyService) {
+        this.apifyService = apifyService;
+    }
+
+    @GetMapping("/crime")
+    public List<NewsResponseDto> getCrimeNews() {
+        return apifyService.getCrimeNews();
+    }
+}package com.RiskAnalyse.project.controller;
+
+import com.RiskAnalyse.project.dto.request.ChatRequest;
+import com.RiskAnalyse.project.dto.response.ChatResponse;
+import com.RiskAnalyse.project.service.AssistantService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/assistant")
+@RequiredArgsConstructor
+@CrossOrigin
+public class AssistantController {
+
+    private final AssistantService assistantService;
+
+    @PostMapping("/chat")
+    public ChatResponse chat(@RequestBody ChatRequest request) {
+
+        String reply = assistantService.generateReply(request.getMessage());
+
+        return ChatResponse.builder()
+                .reply(reply)
+                .build();
+    }
+}
+
+
+package com.RiskAnalyse.project.controller;
+
+
+
+import com.RiskAnalyse.project.dto.response.EmergencyResponse;
+import com.RiskAnalyse.project.service.EmergencyService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/emergency")
+@RequiredArgsConstructor
+@CrossOrigin
+public class EmergencyController {
+
+    private final EmergencyService emergencyService;
+
+    @GetMapping
+    public List<EmergencyResponse> getEmergency(@RequestParam String city) {
+        return emergencyService.getNearby(city);
+    }
+}
+ package com.RiskAnalyse.project.controller;
+
+import com.RiskAnalyse.project.dto.response.HeatmapPoint;
+import com.RiskAnalyse.project.service.HeatmapService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/heatmap")
+@CrossOrigin("*")
+public class HeatmapController {
+
+    private final HeatmapService service;
+
+    public HeatmapController(HeatmapService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    public List<HeatmapPoint> getHeatmap(
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "2") double radius
+    ) {
+        return service.generateHeatmap(lat, lng, radius);
+    }
+} package com.RiskAnalyse.project.controller;
+
+import com.RiskAnalyse.project.dto.request.IncidentRequest;
+import com.RiskAnalyse.project.dto.response.IncidentResponse;
+import com.RiskAnalyse.project.service.IncidentService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/incidents")
+@CrossOrigin("*")
+public class IncidentController {
+
+    private final IncidentService service;
+
+    public IncidentController(IncidentService service) {
+        this.service = service;
+    }
+
+    // ✅ POST
+    @PostMapping
+    public IncidentResponse report(@RequestBody IncidentRequest request) {
+        return service.report(request);
+    }
+
+    // ✅ GET
+    @GetMapping
+    public List<IncidentResponse> getAll() {
+        return service.getAll();
+    }
+    @GetMapping("/nearby")
+    public List<IncidentResponse> getNearby(
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "2") double radius
+    ) {
+        return service.getNearby(lat, lng, radius);
+    }
+}package com.RiskAnalyse.project.controller;
+
+
+import com.RiskAnalyse.project.dto.response.HeatmapResponse;
+import com.RiskAnalyse.project.service.MapService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/map")
+@RequiredArgsConstructor
+@CrossOrigin
+public class MapController {
+
+    private final MapService mapService;
+
+    @GetMapping("/heatmap")
+    public List<HeatmapResponse> getHeatmap(@RequestParam String city) {
+        return mapService.getHeatmap(city);
+    }
+}package com.RiskAnalyse.project.controller;
+
+import com.RiskAnalyse.project.service.AiService;
+import com.RiskAnalyse.project.service.RiskService;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/risk")
+@CrossOrigin("*")
+public class RiskController {
+
+    private final RiskService riskService;
+    private final AiService aiService;
+
+    public RiskController(RiskService riskService,AiService aiService) {
+        this.riskService = riskService;
+        this.aiService = aiService;
+    }
+
+    @GetMapping
+    public Object getRisk(
+            @RequestParam double lat,
+            @RequestParam double lng
+    ) {
+        double score = riskService.calculateRisk(lat, lng);
+
+        String level;
+        if (score < 30) level = "LOW";
+        else if (score < 70) level = "MEDIUM";
+        else level = "HIGH";
+
+        return new Object() {
+            public final double riskScore = score;
+            public final String riskLevel = level;
+        };
+    }
+    @GetMapping("/detailed")
+    public Object getDetailedRisk(
+            @RequestParam double lat,
+            @RequestParam double lng
+    ) {
+        double score = riskService.calculateRisk(lat, lng);
+
+        String explanation = aiService.explainRisk(lat, lng, score);
+        String tips = aiService.suggestSafety(lat, lng, score);
+
+        return new Object() {
+            public final double riskScore = score;
+            public final String explanationText = explanation;
+            public final String safetyTips = tips;
+        };
+    }
+
+}
+
+package com.RiskAnalyse.project.controller;
+
+
+
+import com.RiskAnalyse.project.dto.request.RouteRequest;
+import com.RiskAnalyse.project.dto.response.RouteResponse;
+import com.RiskAnalyse.project.service.RouteService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/route")
+@RequiredArgsConstructor
+@CrossOrigin
+public class RouteController {
+
+    private final RouteService routeService;
+
+    @PostMapping("/analyze")
+    public RouteResponse analyze(@RequestBody RouteRequest request) {
+        return routeService.analyzeRoute(request);
+    }
+    @GetMapping("/safe")
+    public List<Object> getSafeRoute(
+            @RequestParam double startLat,
+            @RequestParam double startLng,
+            @RequestParam double endLat,
+            @RequestParam double endLng
+    ) {
+        return routeService.getSafeRoute(startLat, startLng, endLat, endLng);
+    }
+} package com.RiskAnalyse.project.controller;
+
+
+
+import com.RiskAnalyse.project.dto.request.SafetyRequest;
+import com.RiskAnalyse.project.dto.response.SafetyResponse;
+import com.RiskAnalyse.project.service.SafetyService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/safety")
+@RequiredArgsConstructor
+@CrossOrigin
+public class SafetyController {
+
+    private final SafetyService safetyService;
+
+    @PostMapping("/analyze")
+    public SafetyResponse analyze(@Valid @RequestBody SafetyRequest request) {
+        return safetyService.analyze(request);
+    }
+} package com.RiskAnalyse.project.controller;
+
+import com.RiskAnalyse.project.repository.IncidentRepository;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/trends")
+public class TrendController {
+
+    private final IncidentRepository repository;
+
+    public TrendController(IncidentRepository repository) {
+        this.repository = repository;
+    }
+
+    @GetMapping
+    public Object getTrends() {
+
+        long total = repository.count();
+
+        return new Object() {
+            public final long totalIncidents = total;
+            public final String trend = total > 50 ? "INCREASING" : "STABLE";
+        };
+    }
+}package com.RiskAnalyse.project.data;
+
+import com.RiskAnalyse.project.model.Incident;
+import com.RiskAnalyse.project.model.embedded.Location;
+import com.RiskAnalyse.project.repository.IncidentRepository;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.Arrays;
+
+@Component
+public class CrimeDataLoader implements CommandLineRunner {
+
+    private final IncidentRepository repository;
+
+    public CrimeDataLoader(IncidentRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public void run(String... args) {
+
+        if (repository.count() > 0) return;
+
+        Incident i = new Incident();
+
+        Location loc = new Location();
+        loc.setLat(34.0837);
+        loc.setLng(74.7973);
+        loc.generateCoordinates();
+
+        i.setType("THEFT");
+        i.setDescription("Historical crime data");
+        i.setLocation(loc);
+        i.setSeverity(3);
+        i.setTimestamp(Instant.now().minusSeconds(86400));
+        i.setReportedBy("NCRB");
+        i.setVerified(true);
+
+        repository.save(i);
+    }
+} package com.RiskAnalyse.project.data;
+
+import com.RiskAnalyse.project.model.Area;
+import com.RiskAnalyse.project.model.embedded.CrimeData;
+import com.RiskAnalyse.project.model.embedded.Location;
+import com.RiskAnalyse.project.repository.AreaRepository;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class DataSeeder implements CommandLineRunner {
+
+    private final AreaRepository areaRepository;
+
+    @Override
+    public void run(String... args) {
+
+        if (areaRepository.count() > 0) return;
+
+        // Delhi - Connaught Place
+        Area delhi = new Area();
+        delhi.setCity("Delhi");
+        delhi.setAreaName("Connaught Place");
+        delhi.setAreaRisk(0.7);
+        delhi.setEmergencyScore(0.9);
+
+        Location loc1 = new Location();
+        loc1.setLat(28.6315);
+        loc1.setLng(77.2167);
+
+        CrimeData crime1 = new CrimeData();
+        crime1.setTheft(40);
+        crime1.setHarassment(25);
+        crime1.setTraffic(15);
+
+        delhi.setLocation(loc1);
+        delhi.setCrimeData(crime1);
+
+        // Mumbai - Bandra
+        Area mumbai = new Area();
+        mumbai.setCity("Mumbai");
+        mumbai.setAreaName("Bandra");
+        mumbai.setAreaRisk(0.3);
+        mumbai.setEmergencyScore(0.9);
+
+        Location loc2 = new Location();
+        loc2.setLat(19.0596);
+        loc2.setLng(72.8295);
+
+        CrimeData crime2 = new CrimeData();
+        crime2.setTheft(15);
+        crime2.setHarassment(8);
+        crime2.setTraffic(10);
+
+        mumbai.setLocation(loc2);
+        mumbai.setCrimeData(crime2);
+
+        areaRepository.save(delhi);
+        areaRepository.save(mumbai);
+
+        System.out.println("✅ Dummy data loaded");
+    }
+} package com.RiskAnalyse.project.dto.request;
+
+
+import lombok.Data;
+
+@Data
+public class ChatRequest {
+
+    private String message;
+}
+  package com.RiskAnalyse.project.dto.request;
+
+import lombok.Data;
+
+@Data
+public class IncidentRequest {
+
+    private String type;
+    private String description;
+
+    private double lat;
+    private double lng;
+
+    private int severity;
+    private String reportedBy;
+}
+ package com.RiskAnalyse.project.dto.request;
+
+
+import lombok.Data;
+
+@Data
+public class RouteRequest {
+
+    private String source;
+    private String destination;
+    private String mode;   // walk, cab, transit
+    private int hour;
+}
+
+package com.RiskAnalyse.project.dto.request;
+
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class SafetyRequest {
+
+    @NotBlank
+    private String city;
+
+    @NotBlank
+    private String area;
+
+    private int hour;        // 0–23
+    private String profile;  // solo, female, family, student
+}
+ package com.RiskAnalyse.project.dto.response;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class ChatResponse {
+
+    private String reply;
+} package com.RiskAnalyse.project.dto.response;
+
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class EmergencyResponse {
+
+    private String name;
+    private String type;     // hospital, police
+    private String distance; // mock
+    private String eta;
+}
+ package com.RiskAnalyse.project.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class HeatmapPoint {
+
+    private double lat;
+    private double lng;
+    private double risk;
+} package com.RiskAnalyse.project.dto.response;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class HeatmapResponse {
+
+    private double lat;
+    private double lng;
+    private double intensity;
+}package com.RiskAnalyse.project.dto.response;
+
+import lombok.Data;
+
+import java.time.Instant;
+
+@Data
+public class IncidentResponse {
+
+    private String id;
+    private String type;
+    private String description;
+
+    private double lat;
+    private double lng;
+
+    private int severity;
+    private Instant timestamp;
+} package com.RiskAnalyse.project.dto.response;
+
+
+
+public class NewsResponseDto {
+
+    private String title;
+    private String link;
+    private String source;
+    private String publishedAt;
+    private String image;
+
+    public NewsResponseDto() {}
+
+    public NewsResponseDto(String title, String link, String source,
+                           String publishedAt, String image) {
+        this.title = title;
+        this.link = link;
+        this.source = source;
+        this.publishedAt = publishedAt;
+        this.image = image;
+    }
+
+    // Getters & Setters
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getLink() { return link; }
+    public void setLink(String link) { this.link = link; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+
+    public String getPublishedAt() { return publishedAt; }
+    public void setPublishedAt(String publishedAt) { this.publishedAt = publishedAt; }
+
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
+} package com.RiskAnalyse.project.dto.response;
+
+
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@Builder
+public class RouteResponse {
+
+    private int score;
+    private String riskLevel;
+    private String eta;
+    private String traffic;
+
+    private List<Hotspot> hotspots;
+
+    @Data
+    @Builder
+    public static class Hotspot {
+        private double lat;
+        private double lng;
+        private String risk;
+    }
+}package com.RiskAnalyse.project.dto.response;
+
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
+
+@Data
+@Builder
+public class SafetyResponse {
+
+    private int score;
+    private String riskLevel;
+
+    private Map<String, Double> breakdown;
+
+    private Map<String, Integer> crimes;
+
+    private List<String> insights;
+    private List<String> recommendations;
+} package com.RiskAnalyse.project.model.embedded;
+
+import lombok.Data;
+
+@Data
+public class CrimeData {
+
+    private int theft;
+    private int harassment;
+    private int traffic;
+}
+ package com.RiskAnalyse.project.model.embedded;
+
+import lombok.Data;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Data
+public class Location {
+
+    private double lat;
+    private double lng;
+
+    // 🔥 Add this for MongoDB GeoJSON
+    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
+    private List<Double> coordinates;
+
+    private String type = "Point";
+
+    // 🔥 Helper method
+    public void generateCoordinates() {
+        this.coordinates = Arrays.asList(lng, lat);
+    }
+}
+ package com.RiskAnalyse.project.model;
+
+
+
+import com.RiskAnalyse.project.model.embedded.CrimeData;
+import com.RiskAnalyse.project.model.embedded.Location;
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Data
+@Document(collection = "areas")
+public class Area {
+
+    @Id
+    private String id;
+
+    private String city;
+    private String areaName;
+
+    private double areaRisk;
+    private double emergencyScore;
+
+    private Location location;
+    private CrimeData crimeData;
+}
+package com.RiskAnalyse.project.model;
+
+import com.RiskAnalyse.project.model.embedded.Location;
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.Instant;
+
+@Data
+@Document(collection = "incidents")
+public class Incident {
+
+    @Id
+    private String id;
+
+    private String type;
+    private String description;
+
+    private Location location;
+
+    private int severity;
+    private Instant timestamp;
+
+    private String reportedBy;
+    private boolean verified;
+} package com.RiskAnalyse.project.repository;
+
+import com.RiskAnalyse.project.model.Area;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.Optional;
+
+public interface AreaRepository extends MongoRepository<Area, String> {
+
+    Optional<Area> findByCityAndAreaName(String city, String areaName);
+}
+ package com.RiskAnalyse.project.repository;
+
+import com.RiskAnalyse.project.model.Incident;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+
+import java.util.List;
+
+public interface IncidentRepository extends MongoRepository<Incident, String> {
+
+    // ✅ EXISTING (keep if already added)
+    @Query("""
+    {
+      'location.coordinates': {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [?0, ?1]
+          },
+          $maxDistance: ?2
+        }
+      }
+    }
+    """)
+    List<Incident> findNearby(double lng, double lat, double maxDistance);
+
+    // 🔥 NEW (used in risk engine)
+    @Query("""
+    {
+      'location.coordinates': {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [?0, ?1]
+          },
+          $maxDistance: ?2
+        }
+      }
+    }
+    """)
+    List<Incident> findNearbyLimited(double lng, double lat, double maxDistance);
+} package com.RiskAnalyse.project.service;
+
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AiService {
+
+    private final ChatClient chatClient;
+
+    public AiService(ChatClient chatClient) {
+        this.chatClient = chatClient;
+    }
+
+    public String explainRisk(double lat, double lng, double risk) {
+
+        String prompt = """
+        You are a safety AI.
+
+        Location: (%f, %f)
+        Risk Score: %.2f
+
+        Explain why this area might be risky in simple terms.
+        Keep it short (2-3 lines).
+        """.formatted(lat, lng, risk);
+
+        return chatClient.prompt()
+                .user(prompt)
+                .call()
+                .content();
+    }
+
+    public String suggestSafety(double lat, double lng, double risk) {
+
+        String prompt = """
+        You are a safety assistant.
+
+        Location: (%f, %f)
+        Risk Score: %.2f
+
+        Suggest safety tips and precautions.
+        """.formatted(lat, lng, risk);
+
+        return chatClient.prompt()
+                .user(prompt)
+                .call()
+                .content();
+    }
+
+    public String chat(String userInput) {
+
+        String prompt = """
+    You are an AI Safety Assistant.
+
+    Answer user questions about safety, crime, and precautions.
+    Keep answers short and helpful.
+
+    Question: %s
+    """.formatted(userInput);
+
+        return chatClient.prompt(prompt).call().content();
+    }
+}package com.RiskAnalyse.project.service;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class AlertService {
+
+    public void checkAndAlert(double risk, double lat, double lng) {
+
+        if (risk > 80) {
+            System.out.println("🚨 ALERT: High risk at " + lat + ", " + lng);
+        }
+    }
+}package com.RiskAnalyse.project.service;
+
+import com.RiskAnalyse.project.dto.response.NewsResponseDto;
+import com.RiskAnalyse.project.util.NewsFilterUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class ApifyService {
+
+    @Value("${apify.api.token}")
+    private String apiToken;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    public List<NewsResponseDto> getCrimeNews() {
+        try {
+
+            String datasetId = "eeEMI0cEgfEZA5YTH";
+
+            String url = "https://api.apify.com/v2/datasets/"
+                    + datasetId + "/items?token=" + apiToken;
+
+            String response = restTemplate.getForObject(url, String.class);
+
+            JsonNode root = mapper.readTree(response);
+
+            List<NewsResponseDto> result = new ArrayList<>();
+
+            for (JsonNode node : root) {
+
+                // ✅ Null-safe extraction
+                String title = node.has("title") ? node.get("title").asText() : "";
+                String link = node.has("link") ? node.get("link").asText() : "";
+                String source = node.has("source") ? node.get("source").asText() : "unknown";
+                String publishedAt = node.has("publishedAt") ? node.get("publishedAt").asText() : "";
+                String image = node.has("image") ? node.get("image").asText() : null;
+
+                // 🔍 DEBUG LOGS
+                System.out.println("RAW TITLE: " + title);
+
+                // 🔥 FILTER
+                if (!NewsFilterUtil.isRelevant(title)) {
+                    continue;
+                }
+
+                System.out.println("PASSED FILTER: " + title);
+
+                NewsResponseDto news = new NewsResponseDto(
+                        title,
+                        link,
+                        source,
+                        publishedAt,
+                        image
+                );
+
+                result.add(news);
+            }
+
+            System.out.println("FINAL RESULT SIZE: " + result.size());
+
+            return result;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching crime news", e);
+        }
+    }
+} package com.RiskAnalyse.project.service;
+
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class AssistantService {
+
+    public String generateReply(String message) {
+
+        message = message.toLowerCase();
+
+        if (message.contains("safe")) {
+            return "This area is moderately safe. Avoid isolated streets at night.";
+        }
+
+        if (message.contains("night")) {
+            return "Travel during night hours carries higher risk. Prefer cabs.";
+        }
+
+        if (message.contains("transport")) {
+            return "Use verified ride services like Uber or Ola.";
+        }
+
+        return "Stay alert and follow basic safety precautions.";
+    }
+}
+package com.RiskAnalyse.project.service;
+
+
+import com.RiskAnalyse.project.dto.response.EmergencyResponse;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class EmergencyService {
+
+    public List<EmergencyResponse> getNearby(String city) {
+
+        // mock data (can later integrate Google Places API)
+
+        return List.of(
+                EmergencyResponse.builder()
+                        .name("AIIMS Hospital")
+                        .type("hospital")
+                        .distance("1.2 km")
+                        .eta("5 mins")
+                        .build(),
+
+                EmergencyResponse.builder()
+                        .name("Delhi Police Station")
+                        .type("police")
+                        .distance("0.8 km")
+                        .eta("3 mins")
+                        .build()
+        );
+    }
+} package com.RiskAnalyse.project.service;
+
+import com.RiskAnalyse.project.dto.response.HeatmapPoint;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class HeatmapService {
+
+    private final RiskService riskService;
+
+    public HeatmapService(RiskService riskService) {
+        this.riskService = riskService;
+    }
+
+    public List<HeatmapPoint> generateHeatmap(
+            double centerLat,
+            double centerLng,
+            double radiusKm
+    ) {
+
+        List<HeatmapPoint> result = new ArrayList<>();
+
+        double step = 0.002; // ~200m grid
+
+        for (double lat = centerLat - 0.01; lat <= centerLat + 0.01; lat += step) {
+            for (double lng = centerLng - 0.01; lng <= centerLng + 0.01; lng += step) {
+
+                double risk = riskService.calculateRisk(lat, lng);
+
+                result.add(new HeatmapPoint(lat, lng, risk));
+            }
+        }
+
+        return result;
+    }
+}
+package com.RiskAnalyse.project.service;
+
+import com.RiskAnalyse.project.dto.request.IncidentRequest;
+import com.RiskAnalyse.project.dto.response.IncidentResponse;
+import com.RiskAnalyse.project.model.Incident;
+import com.RiskAnalyse.project.model.embedded.Location;
+import com.RiskAnalyse.project.repository.IncidentRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class IncidentService {
+
+    private final IncidentRepository repository;
+
+    public IncidentService(IncidentRepository repository) {
+        this.repository = repository;
+    }
+
+    // 🔥 CREATE INCIDENT
+    public IncidentResponse report(IncidentRequest request) {
+
+        Location location = new Location();
+        location.setLat(request.getLat());
+        location.setLng(request.getLng());
+        location.generateCoordinates(); // IMPORTANT
+
+        Incident incident = new Incident();
+        incident.setType(request.getType());
+        incident.setDescription(request.getDescription());
+        incident.setLocation(location);
+        incident.setSeverity(request.getSeverity());
+        incident.setTimestamp(Instant.now());
+        incident.setReportedBy(request.getReportedBy());
+        incident.setVerified(false);
+
+        Incident saved = repository.save(incident);
+
+        return mapToResponse(saved);
+    }
+
+    // 🔥 GET ALL INCIDENTS
+    public List<IncidentResponse> getAll() {
+        return repository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // 🔁 MAPPER
+    private IncidentResponse mapToResponse(Incident incident) {
+        IncidentResponse res = new IncidentResponse();
+
+        res.setId(incident.getId());
+        res.setType(incident.getType());
+        res.setDescription(incident.getDescription());
+        res.setLat(incident.getLocation().getLat());
+        res.setLng(incident.getLocation().getLng());
+        res.setSeverity(incident.getSeverity());
+        res.setTimestamp(incident.getTimestamp());
+
+        return res;
+    }
+    public List<IncidentResponse> getNearby(double lat, double lng, double radiusKm) {
+
+        double maxDistance = radiusKm * 1000; // km → meters
+
+        List<Incident> incidents = repository.findNearby(lng, lat, maxDistance);
+
+        return incidents.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+} package com.RiskAnalyse.project.service;
+
+
+import com.RiskAnalyse.project.dto.response.HeatmapResponse;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class MapService {
+
+    public List<HeatmapResponse> getHeatmap(String city) {
+
+        return List.of(
+                HeatmapResponse.builder()
+                        .lat(28.61)
+                        .lng(77.20)
+                        .intensity(0.8)
+                        .build(),
+
+                HeatmapResponse.builder()
+                        .lat(28.65)
+                        .lng(77.22)
+                        .intensity(0.4)
+                        .build()
+        );
+    }
+}package com.RiskAnalyse.project.service;
+
+import com.RiskAnalyse.project.model.Incident;
+import com.RiskAnalyse.project.repository.IncidentRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Random;
+
+@Service
+public class RiskService {
+
+    private final AlertService alertService;
+    private final IncidentRepository repository;
+    private final Random random = new Random();
+
+    public RiskService(IncidentRepository repository,AlertService alertService) {
+        this.repository = repository;
+        this.alertService=alertService;
+    }
+
+    public double calculateRisk(double lat, double lng) {
+
+        double radiusKm = 3;
+        double maxDistance = radiusKm * 1000;
+
+        List<Incident> incidents =
+                repository.findNearbyLimited(lng, lat, maxDistance);
+
+        double risk = 0;
+
+        for (Incident i : incidents) {
+
+            double distance = distance(
+                    lat, lng,
+                    i.getLocation().getLat(),
+                    i.getLocation().getLng()
+            );
+
+            // 🔥 Distance weight
+            double distanceWeight =
+                    Math.max(0.5, (radiusKm - distance) / radiusKm);
+
+            // 🔥 Severity
+            double severityWeight = i.getSeverity();
+
+            // 🔥 Time decay
+            long hoursAgo = ChronoUnit.HOURS.between(
+                    i.getTimestamp(), Instant.now());
+
+            double timeDecay =
+                    Math.max(0.2, 1.0 / (1 + hoursAgo * 0.1));
+
+            risk += severityWeight * distanceWeight * timeDecay;
+        }
+
+        // 🌙 Night boost
+        int hour = Instant.now()
+                .atZone(java.time.ZoneId.systemDefault())
+                .getHour();
+
+        double nightFactor =
+                (hour >= 20 || hour <= 5) ? 1.5 : 1.0;
+
+        risk *= nightFactor;
+
+        // 🎲 Random factor
+        risk += random.nextDouble() * 2;
+        alertService.checkAndAlert(risk, lat, lng);
+        // 🎯 Normalize
+        double normalized = 100 * (1 - Math.exp(-risk / 10));
+        return Math.min(100, normalized);
+    }
+
+    // 📍 Haversine formula
+    private double distance(double lat1, double lon1,
+                            double lat2, double lon2) {
+
+        final int R = 6371;
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1))
+                * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2)
+                * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+    }
+}package com.RiskAnalyse.project.service;
+
+import com.RiskAnalyse.project.dto.request.RouteRequest;
+import com.RiskAnalyse.project.dto.response.RouteResponse;
+import com.RiskAnalyse.project.service.ScoringService;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+@Service
+//@RequiredArgsConstructor
+public class RouteService {
+
+    private final RiskService riskService;
+    private final ScoringService scoringService;
+    public RouteService(RiskService riskService, ScoringService scoringService) {
+        this.scoringService = scoringService;
+        this.riskService = riskService;
+    }
+
+    public RouteResponse analyzeRoute(RouteRequest request) {
+
+        Random random = new Random();
+
+        double areaRisk = 0.3 + random.nextDouble() * 0.5;
+        double emergencyScore = 0.8;
+
+        int score = scoringService.calculateScore(
+                areaRisk,
+                request.getHour(),
+                "solo",
+                emergencyScore
+        );
+
+        return RouteResponse.builder()
+                .score(score)
+                .riskLevel(getRiskLevel(score))
+                .eta("15 mins")
+                .traffic("Moderate")
+                .hotspots(generateHotspots())
+                .build();
+    }
+
+    private String getRiskLevel(int score) {
+        if (score > 75) return "Low";
+        if (score > 50) return "Moderate";
+        return "High";
+    }
+
+    private List<RouteResponse.Hotspot> generateHotspots() {
+        return List.of(
+                RouteResponse.Hotspot.builder()
+                        .lat(28.63)
+                        .lng(77.21)
+                        .risk("high")
+                        .build(),
+                RouteResponse.Hotspot.builder()
+                        .lat(28.64)
+                        .lng(77.22)
+                        .risk("moderate")
+                        .build()
+        );
+    }
+    public List<Object> getSafeRoute(
+            double startLat, double startLng,
+            double endLat, double endLng
+    ) {
+
+        List<Object> route = new ArrayList<>();
+
+        int steps = 10;
+
+        for (int i = 0; i <= steps; i++) {
+
+            double lat = startLat + (endLat - startLat) * i / steps;
+            double lng = startLng + (endLng - startLng) * i / steps;
+
+            double risk = riskService.calculateRisk(lat, lng);
+
+            route.add(new Object() {
+                public final double latitude = lat;
+                public final double longitude = lng;
+                public final double riskScore = risk;
+            });
+        }
+
+        return route;
+    }
+} package com.RiskAnalyse.project.service;
+
+
+
+
+import com.RiskAnalyse.project.dto.request.SafetyRequest;
+import com.RiskAnalyse.project.dto.response.SafetyResponse;
+import com.RiskAnalyse.project.model.Area;
+import com.RiskAnalyse.project.repository.AreaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+public class SafetyService {
+
+    private final AreaRepository areaRepository;
+    private final ScoringService scoringService;
+
+    public SafetyResponse analyze(SafetyRequest request) {
+
+        Area area = areaRepository
+                .findByCityAndAreaName(request.getCity(), request.getArea())
+                .orElseThrow(() -> new RuntimeException("Area not found"));
+
+        int score = scoringService.calculateScore(
+                area.getAreaRisk(),
+                request.getHour(),
+                request.getProfile(),
+                area.getEmergencyScore()
+        );
+
+        return SafetyResponse.builder()
+                .score(score)
+                .riskLevel(getRiskLevel(score))
+                .breakdown(Map.of(
+                        "areaRisk", area.getAreaRisk(),
+                        "emergencyScore", area.getEmergencyScore()
+                ))
+                .crimes(Map.of(
+                        "theft", area.getCrimeData().getTheft(),
+                        "harassment", area.getCrimeData().getHarassment(),
+                        "traffic", area.getCrimeData().getTraffic()
+                ))
+                .insights(generateInsights(score))
+                .recommendations(generateRecommendations(score))
+                .build();
+    }
+
+    private String getRiskLevel(int score) {
+        if (score > 75) return "Low";
+        if (score > 50) return "Moderate";
+        return "High";
+    }
+
+    private List<String> generateInsights(int score) {
+        if (score < 50) return List.of("High crime probability", "Low safety conditions");
+        if (score < 75) return List.of("Moderate activity", "Stay cautious");
+        return List.of("Safe conditions", "Normal activity");
+    }
+
+    private List<String> generateRecommendations(int score) {
+        if (score < 50)
+            return List.of("Avoid travel", "Use trusted transport");
+
+        if (score < 75)
+            return List.of("Stay alert", "Prefer crowded routes");
+
+        return List.of("Safe to travel", "Basic precautions enough");
+    }
+}package com.RiskAnalyse.project.service;
+
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class ScoringService {
+
+    public int calculateScore(double areaRisk, int hour, String profile, double emergencyScore) {
+
+        double timeRisk;
+
+        if (hour >= 6 && hour < 18) timeRisk = 0.2;
+        else if (hour < 22) timeRisk = 0.5;
+        else timeRisk = 0.8;
+
+        double profileRisk = switch (profile.toLowerCase()) {
+            case "female" -> 0.8;
+            case "solo" -> 0.6;
+            case "student" -> 0.5;
+            case "family" -> 0.3;
+            default -> 0.5;
+        };
+
+        double score =
+                100 -
+                        (0.35 * areaRisk +
+                                0.25 * timeRisk +
+                                0.20 * profileRisk +
+                                0.10 * 0.5 +   // mock signals
+                                0.10 * (1 - emergencyScore)) * 100;
+
+        return (int) Math.round(score);
+    }
+}
+
+ package com.RiskAnalyse.project.service;
+
+import com.RiskAnalyse.project.model.Incident;
+import com.RiskAnalyse.project.model.embedded.Location;
+import com.RiskAnalyse.project.repository.IncidentRepository;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.Random;
+
+@Service
+public class SimulationService {
+
+    private final IncidentRepository repository;
+    private final Random random = new Random();
+
+    public SimulationService(IncidentRepository repository) {
+        this.repository = repository;
+    }
+
+    @Scheduled(fixedRate = 60000) // every 1 min
+    public void generateFakeIncident() {
+
+        Incident i = new Incident();
+
+        Location loc = new Location();
+        loc.setLat(34.08 + random.nextDouble() * 0.01);
+        loc.setLng(74.79 + random.nextDouble() * 0.01);
+        loc.generateCoordinates();
+
+        i.setType("SIMULATED");
+        i.setDescription("Auto-generated event");
+        i.setLocation(loc);
+        i.setSeverity(random.nextInt(5) + 1);
+        i.setTimestamp(Instant.now());
+        i.setReportedBy("SYSTEM");
+        i.setVerified(true);
+
+        repository.save(i);
+    }
+}
+package com.RiskAnalyse.project.util;
+
+import java.util.Arrays;
+import java.util.List;
+
+public class NewsFilterUtil {
+
+    private static final List<String> CRIME_KEYWORDS = Arrays.asList(
+            "crime", "murder", "robbery", "attack",
+            "theft", "police", "rape", "violence"
+    );
+
+    public static boolean isRelevant(String title) {
+        if (title == null || title.isEmpty()) return false;
+
+        String lower = title.toLowerCase();
+
+        // ✅ Only crime filtering (REMOVED location restriction)
+        return CRIME_KEYWORDS.stream().anyMatch(lower::contains);
+    }
+}package com.RiskAnalyse.project;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@EnableScheduling
+@SpringBootApplication
+public class ProjectApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ProjectApplication.class, args);
+	}
+
+}
+

@@ -1,0 +1,10 @@
+---
+description: Resolve Git merge conflicts by keeping the HEAD side
+alwaysApply: true
+---
+
+# Merge conflicts
+
+When resolving Git merge conflicts in this project, **always keep the `HEAD` version** (the code between `<<<<<<< HEAD` and `=======`). Remove conflict markers and delete the incoming block (between `=======` and `>>>>>>> ...`).
+
+If both sides contain unique useful changes, still prefer HEAD unless the user explicitly asks to merge both.

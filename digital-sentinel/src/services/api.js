@@ -1,5 +1,12 @@
 const BASE_URL = 'http://localhost:8081';
 
+/** First segment before comma — works for "London, UK" → "London" */
+export const extractCityKey = (destination) => {
+  if (!destination || typeof destination !== 'string') return 'London';
+  const part = destination.split(',')[0].trim();
+  return part || 'London';
+};
+
 async function fetchJson(url, options = {}, fallback = null) {
   try {
     const res = await fetch(url, options);
@@ -98,8 +105,38 @@ export const getEmergencyServices = async (city) => callApi(`/api/emergency?city
   { name: 'Fire Station 42', type: 'fire', distance: '2.1 miles', eta: '12 mins' }
 ]);
 
+/** Apify-backed crime & safety headlines */
+export const getCrimeNews = async (city) => {
+  const key = extractCityKey(city);
+  return callApi(`/api/news/crime?city=${encodeURIComponent(key)}`, {}, [
+    { title: 'Local safety briefing unavailable — connect the Spring API on port 8081.', link: '#', source: 'Digital Sentinel', publishedAt: '', image: '' }
+  ]);
+};
+
+/** Backend weather pipeline (multi-row forecast list) */
+export const getWeatherByCity = async (city) => {
+  const key = extractCityKey(city);
+  return callApi(`/api/weather?city=${encodeURIComponent(key)}`, {}, [
+    { day: 'Today', city: key, country: '', temperature: '18°C', weather: 'Partly cloudy', wind: '12 km/h', humidity: '62%', uvIndex: '3' }
+  ]);
+};
+
+/** Gemini via Spring — plain text */
+export const askAiQuestion = async (question) => {
+  const url = `${BASE_URL}/api/ai/ask?question=${encodeURIComponent(question)}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('API Error');
+    const text = await res.text();
+    return text?.replace(/^"|"$/g, '') || 'No response.';
+  } catch (e) {
+    return 'Connect the backend (port 8081) for live AI briefings.';
+  }
+};
+
 export default {
-  geocodeAddress, analyzeSafety, analyzeRoute, getAllIncidents, reportIncident,
+  geocodeAddress, extractCityKey, analyzeSafety, analyzeRoute, getAllIncidents, reportIncident,
   getNearbyIncidents, chatAssistant, getTrends, getSafeRoute, getRiskScore,
-  getRiskDetailed, getCityHeatmap, getLocationHeatmap, getEmergencyServices
+  getRiskDetailed, getCityHeatmap, getLocationHeatmap, getEmergencyServices,
+  getCrimeNews, getWeatherByCity, askAiQuestion
 };

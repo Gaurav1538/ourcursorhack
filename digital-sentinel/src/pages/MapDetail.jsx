@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { analyzeRoute, geocodeAddress, getCityHeatmap, getSafeRoute, getNearbyIncidents, getRiskDetailed } from '../services/api.js';
+import {
+  analyzeRoute,
+  geocodeAddress,
+  getCityHeatmap,
+  getSafeRoute,
+  getNearbyIncidents,
+  getRiskDetailed,
+  getLocationHeatmap,
+  getWeatherByCity,
+  getCrimeNews,
+  extractCityKey
+} from '../services/api.js';
 
 export default function MapDetail() {
   const navigate = useNavigate();
@@ -12,11 +23,15 @@ export default function MapDetail() {
   const [loading, setLoading] = useState(true);
 
   const [showHeatmap, setShowHeatmap] = useState(true);
+  const [showLocHeat, setShowLocHeat] = useState(true);
   const [showSafeRoute, setShowSafeRoute] = useState(true);
   const [showIncidents, setShowIncidents] = useState(true);
   const [weather, setWeather] = useState(null);
+  const [meshWeather, setMeshWeather] = useState([]);
+  const [headlines, setHeadlines] = useState([]);
 
   const heatLayerRef = useRef(null);
+  const locHeatLayerRef = useRef(null);
   const safeRouteRef = useRef(null);
   const incidentsLayerRef = useRef(null);
   const hotspotsLayerRef = useRef(null);
@@ -103,7 +118,7 @@ export default function MapDetail() {
         });
       }
 
-      // City heatmap overlays (approximate points)
+      // City heatmap overlays (/api/map/heatmap)
       try {
         const heat = await getCityHeatmap(destinationStr);
         if (heat && Array.isArray(heat)) {
@@ -121,6 +136,28 @@ export default function MapDetail() {
       } catch (e) {
         // ignore heatmap failures
       }
+
+      const locHeatGroup = window.L.layerGroup();
+      try {
+        const locPts = await getLocationHeatmap(destCoords.lat, destCoords.lng, 2.5);
+        if (locPts && Array.isArray(locPts)) {
+          locPts.forEach(p => {
+            const r = typeof p.risk === 'number' ? p.risk : 0.5;
+            const c = window.L.circle([p.lat, p.lng], {
+              radius: 120 + r * 280,
+              color: '#7c3aed',
+              fillColor: '#8b5cf6',
+              fillOpacity: 0.1 + r * 0.12,
+              weight: 1
+            });
+            locHeatGroup.addLayer(c);
+          });
+        }
+      } catch (e) {
+        // ignore
+      }
+      locHeatLayerRef.current = locHeatGroup;
+      if (showLocHeat) locHeatGroup.addTo(map);
 
       // Nearby incidents
       try {
@@ -164,8 +201,14 @@ export default function MapDetail() {
 
       mapRef.current = map;
       try {
-        const w = await fetchWeather(destCoords.lat, destCoords.lng);
+        const [w, mesh, news] = await Promise.all([
+          fetchWeather(destCoords.lat, destCoords.lng),
+          getWeatherByCity(destinationStr),
+          getCrimeNews(destinationStr)
+        ]);
         setWeather(w);
+        setMeshWeather(Array.isArray(mesh) ? mesh.slice(0, 4) : []);
+        setHeadlines(Array.isArray(news) ? news.slice(0, 4) : []);
       } catch (e) {}
       setLoading(false);
     };
@@ -184,6 +227,11 @@ export default function MapDetail() {
     if (!mapRef.current) return;
     if (showHeatmap) heatLayerRef.current?.addTo(mapRef.current); else heatLayerRef.current?.remove();
   }, [showHeatmap]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (showLocHeat) locHeatLayerRef.current?.addTo(mapRef.current); else locHeatLayerRef.current?.remove();
+  }, [showLocHeat]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -217,7 +265,7 @@ export default function MapDetail() {
           
           <div className="flex items-center justify-between mb-8 shrink-0">
             <h2 className="font-headline text-2xl font-extrabold text-[#0e1c2b]">Route Intelligence</h2>
-            <span className="text-[0.6875rem] font-label font-bold tracking-widest text-emerald-800 bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-md shadow-sm">API ACTIVE</span>
+            <span className="text-[0.6875rem] font-label font-bold tracking-widest text-emerald-800 bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-md shadow-sm">6 APIs</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-xl mb-6 shrink-0">
@@ -237,32 +285,65 @@ export default function MapDetail() {
           </div>
 
           <div className="flex-1 overflow-y-auto pr-3 space-y-6 pb-6 block custom-scrollbar">
+            <div className="mb-4 rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-4">
+              <p className="text-[0.6rem] font-bold uppercase tracking-widest text-violet-700 mb-2">/api/weather · {extractCityKey(destinationStr)}</p>
+              {meshWeather.length ? (
+                <div className="space-y-2 max-h-36 overflow-y-auto custom-scrollbar">
+                  {meshWeather.map((row, i) => (
+                    <div key={i} className="flex justify-between items-center text-xs bg-white/80 rounded-lg px-3 py-2 border border-violet-100">
+                      <span className="font-bold text-slate-800">{row.day || `Slot ${i + 1}`}</span>
+                      <span className="text-violet-900 font-semibold">{row.temperature} · {row.weather}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">Loading backend weather…</p>
+              )}
+            </div>
+
             {weather && (
-              <div className="mb-4 bg-white p-4 rounded-xl border border-slate-100">
+              <div className="mb-4 bg-slate-900 p-4 rounded-xl border border-slate-700">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-blue-700">wb_sunny</span>
+                  <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-amber-300">radar</span>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase">Current Weather</p>
-                    <p className="text-lg font-bold">{Math.round(weather.temperature)}°C • Wind {weather.windspeed} m/s</p>
+                    <p className="text-[0.6rem] text-slate-500 uppercase font-bold tracking-wider">Live sensor (Open-Meteo)</p>
+                    <p className="text-lg font-bold text-white">{Math.round(weather.temperature)}°C · Wind {weather.windspeed} m/s</p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="flex items-center gap-3 mb-6">
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={showHeatmap} onChange={() => setShowHeatmap(v => !v)} />
-                <span className="text-xs">Heatmap</span>
+            {headlines.length > 0 && (
+              <div className="mb-4 rounded-xl border border-rose-100 bg-rose-50/50 p-3">
+                <p className="text-[0.6rem] font-bold uppercase tracking-widest text-rose-800 mb-2">/api/news/crime</p>
+                <ul className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar text-xs">
+                  {headlines.map((h, i) => (
+                    <li key={i}>
+                      <a href={h.link || '#'} target="_blank" rel="noopener noreferrer" className="text-rose-950 font-semibold hover:underline line-clamp-2">{h.title}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={showHeatmap} onChange={() => setShowHeatmap(v => !v)} className="accent-amber-500" />
+                <span className="text-xs font-semibold text-slate-700">City heat</span>
               </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={showSafeRoute} onChange={() => setShowSafeRoute(v => !v)} />
-                <span className="text-xs">Safe Route</span>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={showLocHeat} onChange={() => setShowLocHeat(v => !v)} className="accent-violet-600" />
+                <span className="text-xs font-semibold text-slate-700">Radial /api/heatmap</span>
               </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={showIncidents} onChange={() => setShowIncidents(v => !v)} />
-                <span className="text-xs">Incidents</span>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={showSafeRoute} onChange={() => setShowSafeRoute(v => !v)} className="accent-emerald-600" />
+                <span className="text-xs font-semibold text-slate-700">Safe route</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={showIncidents} onChange={() => setShowIncidents(v => !v)} className="accent-blue-600" />
+                <span className="text-xs font-semibold text-slate-700">Incidents</span>
               </label>
             </div>
 

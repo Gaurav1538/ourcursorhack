@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { geocodeAddress } from '../services/api';
+import { geocodeAddress, getTrends } from '../services/api';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -10,6 +10,11 @@ export default function Landing() {
   
   const [isRightNow, setIsRightNow] = useState(true);
   const [customTime, setCustomTime] = useState('');
+  const [networkPulse, setNetworkPulse] = useState(null);
+
+  useEffect(() => {
+    getTrends().then(setNetworkPulse).catch(() => setNetworkPulse(null));
+  }, []);
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
@@ -183,6 +188,40 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {networkPulse && Array.isArray(networkPulse.weeklyIncidents) && (
+        <section className="relative z-10 px-6 max-w-[1400px] mx-auto pb-20">
+          <div className="rounded-3xl bg-gradient-to-r from-[#0e1c2b] via-[#1a2d44] to-[#0e1c2b] text-white p-8 shadow-2xl border border-white/10 overflow-hidden">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+              <div className="lg:w-1/3">
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-cyan-300/90">Global sentinel mesh</p>
+                <h2 className="font-headline text-2xl font-extrabold mt-2">Live /api/trends stream</h2>
+                <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+                  Incident cadence across the network — same signal that powers your dashboard charts after you analyze a route.
+                </p>
+              </div>
+              <div className="flex-1 flex items-end gap-1.5 h-24">
+                {networkPulse.weeklyIncidents.map((n, i) => {
+                  const mx = Math.max(...networkPulse.weeklyIncidents, 1);
+                  return (
+                    <div key={i} className="flex-1 flex flex-col justify-end h-full group">
+                      <div
+                        className="w-full rounded-t-lg bg-gradient-to-t from-cyan-500 to-blue-400 opacity-90 group-hover:opacity-100 transition-opacity"
+                        style={{ height: `${Math.max(12, (n / mx) * 100)}%` }}
+                      />
+                      <span className="text-[0.55rem] text-slate-500 text-center mt-1 font-bold">{i + 1}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="lg:w-48 flex flex-col justify-center items-start lg:items-end gap-2">
+                <span className="text-xs text-slate-500 uppercase font-bold tracking-widest">Trajectory</span>
+                <span className="text-3xl font-headline font-black text-emerald-400">{networkPulse.overallTrend || '—'}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
     </main>
   );
