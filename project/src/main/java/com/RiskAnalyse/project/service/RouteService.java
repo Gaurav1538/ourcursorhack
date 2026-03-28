@@ -12,10 +12,15 @@ import java.util.List;
 import java.util.Random;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class RouteService {
 
+    private final RiskService riskService;
     private final ScoringService scoringService;
+    public RouteService(RiskService riskService, ScoringService scoringService) {
+        this.scoringService = scoringService;
+        this.riskService = riskService;
+    }
 
     public RouteResponse analyzeRoute(RouteRequest request) {
 
