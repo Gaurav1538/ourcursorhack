@@ -12,11 +12,13 @@ import java.util.Random;
 @Service
 public class RiskService {
 
+    private final AlertService alertService;
     private final IncidentRepository repository;
     private final Random random = new Random();
 
-    public RiskService(IncidentRepository repository) {
+    public RiskService(IncidentRepository repository,AlertService alertService) {
         this.repository = repository;
+        this.alertService=alertService;
     }
 
     public double calculateRisk(double lat, double lng) {
@@ -66,7 +68,7 @@ public class RiskService {
 
         // 🎲 Random factor
         risk += random.nextDouble() * 2;
-
+        alertService.checkAndAlert(risk, lat, lng);
         // 🎯 Normalize
         double normalized = 100 * (1 - Math.exp(-risk / 10));
         return Math.min(100, normalized);

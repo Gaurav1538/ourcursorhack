@@ -8,6 +8,8 @@ import com.RiskAnalyse.project.service.RouteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/route")
 @RequiredArgsConstructor
@@ -19,5 +21,14 @@ public class RouteController {
     @PostMapping("/analyze")
     public RouteResponse analyze(@RequestBody RouteRequest request) {
         return routeService.analyzeRoute(request);
+    }
+    @GetMapping("/safe")
+    public List<Object> getSafeRoute(
+            @RequestParam double startLat,
+            @RequestParam double startLng,
+            @RequestParam double endLat,
+            @RequestParam double endLng
+    ) {
+        return routeService.getSafeRoute(startLat, startLng, endLat, endLng);
     }
 }

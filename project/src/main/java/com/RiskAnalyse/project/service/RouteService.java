@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -64,5 +65,30 @@ public class RouteService {
                         .risk("moderate")
                         .build()
         );
+    }
+    public List<Object> getSafeRoute(
+            double startLat, double startLng,
+            double endLat, double endLng
+    ) {
+
+        List<Object> route = new ArrayList<>();
+
+        int steps = 10;
+
+        for (int i = 0; i <= steps; i++) {
+
+            double lat = startLat + (endLat - startLat) * i / steps;
+            double lng = startLng + (endLng - startLng) * i / steps;
+
+            double risk = riskService.calculateRisk(lat, lng);
+
+            route.add(new Object() {
+                public final double latitude = lat;
+                public final double longitude = lng;
+                public final double riskScore = risk;
+            });
+        }
+
+        return route;
     }
 }
