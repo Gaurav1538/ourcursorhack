@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getEmergencyServices, getAllIncidents, reportIncident } from '../services/api';
 
+=======
+import React, { useState } from 'react';
+
+// Refined, mature contact card matching the landing page aesthetics
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
 const ContactCard = ({ name, role, imgSrc, btn1, btn2, icon1, icon2, isPrimary }) => (
   <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-6 hover:shadow-xl transition-all duration-300 group">
     <div className="flex items-center gap-4">
@@ -23,6 +29,7 @@ const ContactCard = ({ name, role, imgSrc, btn1, btn2, icon1, icon2, isPrimary }
 );
 
 export default function Emergency() {
+<<<<<<< HEAD
   const navigate = useNavigate();
   const [locationContext, setLocationContext] = useState('current'); 
   const [customLocation, setCustomLocation] = useState('');
@@ -89,16 +96,40 @@ export default function Emergency() {
     const activeLocation = locationContext === 'current' ? 'your live GPS coordinates' : (customLocation || 'the selected destination');
     await new Promise(resolve => setTimeout(resolve, 1000));
     alert(`GUARDIAN API: ${type.toUpperCase()} Protocol Activated.\nResponders have been dispatched to ${activeLocation}.`);
+=======
+  const [locationContext, setLocationContext] = useState('current'); 
+  const [customLocation, setCustomLocation] = useState('');
+  const [isTriggering, setIsTriggering] = useState(false);
+
+  const handleAlert = async (type) => {
+    setIsTriggering(true);
+    const activeLocation = locationContext === 'current' 
+      ? 'your live GPS coordinates' 
+      : (customLocation || 'the selected destination');
+      
+    // Simulate API delay for realism
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    alert(`MOCK: ${type.toUpperCase()} Protocol Activated.\nResponders have been dispatched to ${activeLocation}.`);
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
     setIsTriggering(false);
   };
 
   return (
     <main className="pt-28 pb-12 px-6 max-w-[1400px] mx-auto flex-grow font-body text-slate-900 w-full min-h-screen relative overflow-hidden">
+<<<<<<< HEAD
+=======
+      {/* Soft Ambient Background (Matching Landing Page) */}
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
       <div className="absolute top-0 left-0 w-[60%] h-[90vh] bg-gradient-to-br from-rose-50/80 via-red-50/20 to-transparent rounded-br-full pointer-events-none -z-10"></div>
 
       <div className="mb-10 flex justify-between items-center relative z-10">
         <button 
+<<<<<<< HEAD
             onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/dashboard')}
+=======
+            onClick={() => window.history.length > 1 ? window.history.back() : (window.location.href = '/dashboard')}
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
             className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors bg-white px-5 py-2.5 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:shadow-md group"
         >
             <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
@@ -107,21 +138,41 @@ export default function Emergency() {
 
         <div className="bg-emerald-50/80 backdrop-blur-sm border border-emerald-100 px-4 py-2 rounded-full flex items-center gap-2.5 shadow-sm">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse relative"></span>
+<<<<<<< HEAD
           <span className="font-label uppercase tracking-widest text-[10px] font-extrabold text-emerald-700">API Connection: Active</span>
         </div>
       </div>
 
+=======
+          <span className="font-label uppercase tracking-widest text-[10px] font-extrabold text-emerald-700">GPS Stream: Active</span>
+        </div>
+      </div>
+
+      {/* Emergency Header - Mature Typography */}
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
       <div className="mb-12 relative z-10 max-w-3xl">
         <h1 className="font-headline text-[3rem] md:text-[4rem] font-extrabold tracking-tight text-[#0f172a] leading-[1.05] mb-4">
           Emergency <span className="text-rose-600">Response.</span>
         </h1>
         <p className="text-lg text-slate-500 font-medium leading-relaxed">
+<<<<<<< HEAD
           Immediate assistance is standing by. Confirm your incident location and authorize deployment to notify local authorities via the Guardian API.
+=======
+          Immediate assistance is standing by. Confirm your incident location and authorize deployment to notify local authorities.
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-20 relative z-10">
+<<<<<<< HEAD
         <div className="lg:col-span-7 space-y-10">
+=======
+        
+        {/* LEFT COLUMN: Command Center */}
+        <div className="lg:col-span-7 space-y-10">
+          
+          {/* Location Context Module (Sleek Toggles like Landing Page) */}
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
           <div className="space-y-5">
             <label className="block font-label text-[0.6875rem] font-extrabold tracking-[0.15em] text-slate-400 uppercase">
               1. Confirm Incident Location
@@ -131,7 +182,13 @@ export default function Emergency() {
               <button 
                 onClick={() => setLocationContext('current')}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all duration-200 ${
+<<<<<<< HEAD
                   locationContext === 'current' ? 'bg-slate-900 text-white shadow-md transform scale-105' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 hover:border-slate-200'
+=======
+                  locationContext === 'current' 
+                    ? 'bg-slate-900 text-white shadow-md transform scale-105' 
+                    : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 hover:border-slate-200'
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">my_location</span>
@@ -140,7 +197,13 @@ export default function Emergency() {
               <button 
                 onClick={() => setLocationContext('custom')}
                 className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all duration-200 ${
+<<<<<<< HEAD
                   locationContext === 'custom' ? 'bg-slate-900 text-white shadow-md transform scale-105' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 hover:border-slate-200'
+=======
+                  locationContext === 'custom' 
+                    ? 'bg-slate-900 text-white shadow-md transform scale-105' 
+                    : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 hover:border-slate-200'
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">pin_drop</span>
@@ -176,6 +239,10 @@ export default function Emergency() {
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Action Module (Mature Control Panel) */}
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
           <div className="space-y-5 pt-4">
              <label className="block font-label text-[0.6875rem] font-extrabold tracking-[0.15em] text-slate-400 uppercase">
               2. Authorize Deployment
@@ -194,7 +261,13 @@ export default function Emergency() {
                   onClick={() => handleAlert('global_sos')}
                   disabled={isTriggering}
                   className={`w-full py-4 rounded-2xl text-white font-headline font-bold text-lg tracking-wide transition-all duration-300 flex items-center justify-center gap-3 shadow-xl relative overflow-hidden ${
+<<<<<<< HEAD
                     isTriggering ? 'bg-rose-800 pointer-events-none scale-[0.99]' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20 active:scale-[0.98]'
+=======
+                    isTriggering 
+                      ? 'bg-rose-800 pointer-events-none scale-[0.99]' 
+                      : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20 active:scale-[0.98]'
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
                   }`}
                 >
                   {isTriggering ? (
@@ -203,6 +276,10 @@ export default function Emergency() {
                     <><span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span> Deploy Emergency Services</>
                   )}
                 </button>
+<<<<<<< HEAD
+=======
+                
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
                 <button 
                   onClick={() => handleAlert('contacts_only')}
                   disabled={isTriggering}
@@ -215,6 +292,7 @@ export default function Emergency() {
           </div>
         </div>
 
+<<<<<<< HEAD
         <div className="lg:col-span-5 space-y-8">
           <div>
             <label className="block font-label text-[0.6875rem] font-extrabold tracking-[0.15em] text-slate-400 uppercase mb-5">
@@ -281,6 +359,46 @@ export default function Emergency() {
                   <button type="button" onClick={() => { setReportType(''); setReportDesc(''); setReportLocation(''); }} className="bg-slate-50 px-4 py-2 rounded-lg text-sm border">Clear</button>
                 </div>
               </form>
+=======
+        {/* RIGHT COLUMN: Live Support Network & Map */}
+        <div className="lg:col-span-5 space-y-8">
+          
+          <div>
+            <label className="block font-label text-[0.6875rem] font-extrabold tracking-[0.15em] text-slate-400 uppercase mb-5">
+              Live Area Intelligence
+            </label>
+            
+            <div className="space-y-4">
+              <div className="bg-white p-5 rounded-2xl flex items-center justify-between group hover:shadow-lg transition-all duration-300 border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>medical_services</span>
+                  </div>
+                  <div>
+                    <p className="font-headline font-bold text-slate-900">City General Hospital</p>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">0.8 miles • Open 24h</p>
+                  </div>
+                </div>
+                <button className="w-10 h-10 bg-slate-50 text-slate-600 rounded-full flex items-center justify-center hover:bg-slate-900 hover:text-white transition-colors active:scale-95 shrink-0">
+                    <span className="material-symbols-outlined text-[18px]">near_me</span>
+                </button>
+              </div>
+              
+              <div className="bg-white p-5 rounded-2xl flex items-center justify-between group hover:shadow-lg transition-all duration-300 border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_police</span>
+                  </div>
+                  <div>
+                    <p className="font-headline font-bold text-slate-900">Metropolitan Precinct</p>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">1.4 miles • Active Patrol</p>
+                  </div>
+                </div>
+                <button className="w-10 h-10 bg-slate-50 text-slate-600 rounded-full flex items-center justify-center hover:bg-slate-900 hover:text-white transition-colors active:scale-95 shrink-0">
+                    <span className="material-symbols-outlined text-[18px]">near_me</span>
+                </button>
+              </div>
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
             </div>
           </div>
 
@@ -297,6 +415,10 @@ export default function Emergency() {
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Private Network Grid */}
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
       <div className="border-t border-slate-200 pt-16 mt-8 relative z-10">
         <div className="flex items-center justify-between mb-10">
           <h3 className="font-headline text-2xl font-extrabold text-slate-900">Your Secure Network</h3>
@@ -307,6 +429,7 @@ export default function Emergency() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <ContactCard 
+<<<<<<< HEAD
             name="Guard Sentinel" role="Private Security • 24/7" imgSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuBci9AuLbVIaIfis65sZ3gUB0u1CDXh_viYlmHeJp4X3DnZqCJrg_ydsW_ITNbjlyQfnf2jYuUQUHwzAgXCb9dYMrC0tGHSZqG6eauo8rn0sujZ8HrX6oinA7UGx2Xujf05NXIfRo743Hq2F2RmZ46KpZIcwMqyEK9jUjuC_ObqkWuYGwoJaWpUiOKM9tMeEjDpmTV1NwEM9tjEncP1FsHeBpuMj7uj_Vxr7l1B-joJGhu4QUHCxW_D9fY7GLWH1th7_e0y7y651mo"
             btn1="Secure Chat" btn2="Connect Protocol" icon1="chat" icon2="shield" isPrimary={true}
           />
@@ -317,6 +440,27 @@ export default function Emergency() {
           <ContactCard 
             name="Sarah Miller" role="Family • Secondary" imgSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuC0sLwZLGpSy8RbiCQEKNA1qcxVI8nkWUdjlw5QE5PDRojB66jAw3mjlBVzevOTW1pXednYaYbrL_U9Laih2SINz_i9o3yCNz4WZsvSxjuCEoW0WfA2FQco1jgc_5aHfdJxpWSkEp6AUO8GBWUzB54dioF9fhBS5BFsyH2mGOPfkZL4D6qQOnnG6s6LMS9b3RhKfgJxNiFkspXxGOwnVa2xRQoiY3goLjYnsXW6LnofqmF6BqSct86WlithjI968kZHMEWleXn9Bj4"
             btn1="Voice Call" btn2="Share Location" icon1="call" icon2="share_location" isPrimary={false}
+=======
+            name="Guard Sentinel" 
+            role="Private Security • 24/7" 
+            imgSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuBci9AuLbVIaIfis65sZ3gUB0u1CDXh_viYlmHeJp4X3DnZqCJrg_ydsW_ITNbjlyQfnf2jYuUQUHwzAgXCb9dYMrC0tGHSZqG6eauo8rn0sujZ8HrX6oinA7UGx2Xujf05NXIfRo743Hq2F2RmZ46KpZIcwMqyEK9jUjuC_ObqkWuYGwoJaWpUiOKM9tMeEjDpmTV1NwEM9tjEncP1FsHeBpuMj7uj_Vxr7l1B-joJGhu4QUHCxW_D9fY7GLWH1th7_e0y7y651mo"
+            btn1="Secure Chat" btn2="Connect Protocol" icon1="chat" icon2="shield"
+            isPrimary={true}
+          />
+          <ContactCard 
+            name="David Chen" 
+            role="Partner • Primary" 
+            imgSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuDFvT_HSyDis1KCqA548r0fl9JugICYUsyhO_jKG1KJaC8Uu-EI9LLvwwpXnwBkEPgT2ONHtsWffS7bwmgvXM3rqFG53RBhsUTROdo1Ho1JK1x6ozobci1y0NWBOa_E-WwiqrvOZSIRZ1DvGChp47no-hPnb46dQ0aI5kIsRDNnQUywOgEzFFyJL4GfbVSHBd8lWOn-Lje3v2kEuDnAVAeSVaAI3oi0EndVa69porpPCOiGJoefJYGbruuwXepjpkDdXTahcfOuPkM"
+            btn1="Voice Call" btn2="Share Location" icon1="call" icon2="share_location"
+            isPrimary={false}
+          />
+          <ContactCard 
+            name="Sarah Miller" 
+            role="Family • Secondary" 
+            imgSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuC0sLwZLGpSy8RbiCQEKNA1qcxVI8nkWUdjlw5QE5PDRojB66jAw3mjlBVzevOTW1pXednYaYbrL_U9Laih2SINz_i9o3yCNz4WZsvSxjuCEoW0WfA2FQco1jgc_5aHfdJxpWSkEp6AUO8GBWUzB54dioF9fhBS5BFsyH2mGOPfkZL4D6qQOnnG6s6LMS9b3RhKfgJxNiFkspXxGOwnVa2xRQoiY3goLjYnsXW6LnofqmF6BqSct86WlithjI968kZHMEWleXn9Bj4"
+            btn1="Voice Call" btn2="Share Location" icon1="call" icon2="share_location"
+            isPrimary={false}
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
           />
         </div>
       </div>

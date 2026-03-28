@@ -1,25 +1,39 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { geocodeAddress } from '../services/api';
+=======
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
 
 export default function Landing() {
   const navigate = useNavigate();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [profile, setProfile] = useState('solo');
   const [destination, setDestination] = useState('');
+<<<<<<< HEAD
   
   const [isRightNow, setIsRightNow] = useState(true);
   const [customTime, setCustomTime] = useState('');
+=======
+  const [isRightNow, setIsRightNow] = useState(true);
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
     if (!destination) return;
+<<<<<<< HEAD
 
     setIsAnalyzing(true);
     const coords = await geocodeAddress(destination);
     setTimeout(() => {
       navigate('/dashboard', { state: { destination, profile, time: isRightNow ? new Date().getHours() : customTime, coords } });
     }, 800);
+=======
+    
+    setIsAnalyzing(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    navigate('/dashboard');
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
   };
 
   const profiles = [
@@ -111,6 +125,7 @@ export default function Landing() {
               </div>
             </div>
 
+<<<<<<< HEAD
             <div className="flex flex-col gap-4 pt-2">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest w-24">Departure:</span>
@@ -138,6 +153,23 @@ export default function Landing() {
                   />
                 )}
               </div>
+=======
+            <div className="flex items-center gap-3 pt-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Departure:</span>
+              <button 
+                onClick={() => setIsRightNow(true)} 
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors border ${isRightNow ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+              >
+                Right Now
+              </button>
+              <button 
+                onClick={() => setIsRightNow(false)} 
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors border flex items-center gap-1.5 ${!isRightNow ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+              >
+                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                Custom Time
+              </button>
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
             </div>
           </div>
         </div>
@@ -184,6 +216,107 @@ export default function Landing() {
         </div>
       </section>
 
+<<<<<<< HEAD
+=======
+      <section className="max-w-[1400px] mx-auto px-6 pb-24">
+        <div className="bg-slate-900 rounded-[2rem] p-8 md:p-10 relative overflow-hidden shadow-xl flex flex-col md:flex-row items-center gap-8 justify-between group">
+          <img 
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ44TQ7rz6e_D8jRZLPNAE_zYEPTS_s_mSFtGf1xibuAAyaU_v77k_ww9pbzBsy2mgsnBFGyhl7T8FAOIj6BCpR6cZk6UlehG1gzRFiLT7jwnu7MhjPEXKR_u6udDk4JmVgBgLrjGNH8kW_nnfOw35sIHfMWDkwzvjCXAklFoNQPxqqcXehtWiMEvR3zaw8co5bDAj4EOp9FKzcnA-piUjnVeE1lwqZ_Go9BPNVJ1muNebiPLt-TzDFwdUI0t0wsiH9thg3PSCCHY" 
+            alt="Map Background" 
+            className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-luminosity group-hover:opacity-30 transition-opacity duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-transparent"></div>
+          
+          <div className="relative z-10 flex items-center gap-6 max-w-2xl">
+            <div className="w-16 h-16 rounded-full bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0">
+               <span className="material-symbols-outlined text-rose-500 text-[32px]">emergency_home</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="text-2xl font-headline font-bold text-white">Global Emergency Protocol</h3>
+                <span className="bg-rose-500 text-white text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Ready</span>
+              </div>
+              <p className="text-sm font-medium text-slate-400 leading-relaxed">
+                Need immediate assistance? Activate Response to notify local authorities and your private contacts instantly with live GPS tracking.
+              </p>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => navigate('/emergency')}
+            className="relative z-10 flex items-center gap-2 px-8 py-4 bg-rose-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-rose-600/20 hover:bg-rose-500 transition-colors shrink-0 active:scale-95"
+          >
+            Configure Emergency SOS
+          </button>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 max-w-[1400px] mx-auto border-t border-slate-100 bg-[#f8f9fa] rounded-t-[3rem]">
+        <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-8">
+          <div className="max-w-2xl">
+            <h2 className="font-headline text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Intelligence Beyond Maps.</h2>
+            <p className="text-lg text-slate-500 font-medium">We analyze millions of data points to ensure you get there safely.</p>
+          </div>
+          <button className="text-blue-600 font-bold flex items-center gap-1 hover:gap-2 transition-all">
+            Read How It Works <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white rounded-3xl p-2 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 group">
+            <div className="w-full h-48 rounded-2xl overflow-hidden mb-6 relative">
+              <img 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB02UOIcwfp5gV8owvPHc_09tlX_XZ8-GSBDzKi0XJSofcpuOfIDj5YRGUXpCfF7wgpOVa3W8UNR7mfP4b-Yr1zjSm_9jlmVqEZgTXh9IyGndYv8hCRWlHoR4c-w8iU9_3g3XU5yOL6fWmsflIRwGU_5MxaTpAhTQdMTxZoa9_MiwrmHzEoxGyATCl7SNlQNFtQJzwwpv9FfwBON2Jvaiz9jS8zylFzf_UMn6okly0QAQlDkTNBL7CghsRx15Shn3-fCTMp59J7qAQ" 
+                alt="AI Data Visualization" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-xl text-blue-600">
+                <span className="material-symbols-outlined text-[20px] block">analytics</span>
+              </div>
+            </div>
+            <div className="px-6 pb-6">
+              <h3 className="font-headline font-bold text-xl text-slate-900 mb-3">Predictive AI</h3>
+              <p className="text-slate-500 leading-relaxed text-sm font-medium">Continuous analysis of local law enforcement data and news cycles to predict risk zones before incidents escalate.</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-2 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 group">
+            <div className="w-full h-48 rounded-2xl overflow-hidden mb-6 relative">
+              <img 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBci9AuLbVIaIfis65sZ3gUB0u1CDXh_viYlmHeJp4X3DnZqCJrg_ydsW_ITNbjlyQfnf2jYuUQUHwzAgXCb9dYMrC0tGHSZqG6eauo8rn0sujZ8HrX6oinA7UGx2Xujf05NXIfRo743Hq2F2RmZ46KpZIcwMqyEK9jUjuC_ObqkWuYGwoJaWpUiOKM9tMeEjDpmTV1NwEM9tjEncP1FsHeBpuMj7uj_Vxr7l1B-joJGhu4QUHCxW_D9fY7GLWH1th7_e0y7y651mo" 
+                alt="Traveler exploring safely" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-xl text-emerald-600">
+                <span className="material-symbols-outlined text-[20px] block">tune</span>
+              </div>
+            </div>
+            <div className="px-6 pb-6">
+              <h3 className="font-headline font-bold text-xl text-slate-900 mb-3">Personalized Vectors</h3>
+              <p className="text-slate-500 leading-relaxed text-sm font-medium">Safety isn't one-size-fits-all. We dynamically adjust routing based on your profile, time of day, and transit mode.</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-2 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 group">
+            <div className="w-full h-48 rounded-2xl overflow-hidden mb-6 relative">
+              <img 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ44TQ7rz6e_D8jRZLPNAE_zYEPTS_s_mSFtGf1xibuAAyaU_v77k_ww9pbzBsy2mgsnBFGyhl7T8FAOIj6BCpR6cZk6UlehG1gzRFiLT7jwnu7MhjPEXKR_u6udDk4JmVgBgLrjGNH8kW_nnfOw35sIHfMWDkwzvjCXAklFoNQPxqqcXehtWiMEvR3zaw8co5bDAj4EOp9FKzcnA-piUjnVeE1lwqZ_Go9BPNVJ1muNebiPLt-TzDFwdUI0t0wsiH9thg3PSCCHY" 
+                alt="Secure Map Routing" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-xl text-rose-600">
+                <span className="material-symbols-outlined text-[20px] block" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
+              </div>
+            </div>
+            <div className="px-6 pb-6">
+              <h3 className="font-headline font-bold text-xl text-slate-900 mb-3">Active Link</h3>
+              <p className="text-slate-500 leading-relaxed text-sm font-medium">One-tap connection to local emergency services and private security, complete with high-precision GPS streaming.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+>>>>>>> 41779a16e8d750d9f143501ed203cb0cdcaba5ee
     </main>
   );
 }
