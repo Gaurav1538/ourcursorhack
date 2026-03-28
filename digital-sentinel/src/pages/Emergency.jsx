@@ -69,6 +69,32 @@ export default function Emergency() {
   const [reportDesc, setReportDesc] = useState("");
   const [reportLocation, setReportLocation] = useState("");
   const [reporting, setReporting] = useState(false);
+  const [dictating, setDictating] = useState(false);
+
+  const speechSupported =
+    typeof window !== "undefined" &&
+    Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+  const startDictation = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    const recognition = new SR();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    setDictating(true);
+    recognition.onend = () => setDictating(false);
+    recognition.onerror = () => setDictating(false);
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      setReportDesc((prev) => (prev?.trim() ? `${prev.trim()} ${text}` : text));
+    };
+    try {
+      recognition.start();
+    } catch {
+      setDictating(false);
+    }
+  };
 
   useEffect(() => {
     if (!currentLocation) {
@@ -572,12 +598,29 @@ export default function Emergency() {
                     className="p-2 border rounded-lg text-sm w-44"
                   />
                 </div>
-                <textarea
-                  value={reportDesc}
-                  onChange={(e) => setReportDesc(e.target.value)}
-                  placeholder="Brief description..."
-                  className="w-full p-2 border rounded-lg text-sm h-20"
-                ></textarea>
+                <div className="relative">
+                  <textarea
+                    value={reportDesc}
+                    onChange={(e) => setReportDesc(e.target.value)}
+                    placeholder="Brief description… (or use voice)"
+                    className="w-full p-2 pr-24 border rounded-lg text-sm h-24"
+                  />
+                  {speechSupported && (
+                    <button
+                      type="button"
+                      onClick={startDictation}
+                      disabled={dictating}
+                      className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-800 hover:bg-blue-100 disabled:opacity-60"
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[16px] ${dictating ? "animate-pulse text-rose-600" : ""}`}
+                      >
+                        mic
+                      </span>
+                      {dictating ? "Listening" : "Dictate"}
+                    </button>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button
                     type="submit"

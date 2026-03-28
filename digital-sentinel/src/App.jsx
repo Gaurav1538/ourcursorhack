@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import EnvironmentInjector from "./components/layout/EnvironmentInjector";
+import EmergencyHotkey from "./components/layout/EmergencyHotkey";
 import Home from "./pages/Home";
 import Assess from "./pages/Assess";
 import Dashboard from "./pages/Dashboard";
@@ -19,6 +20,7 @@ export default function App() {
     <BrowserRouter>
       <div className="flex min-h-screen flex-col bg-[#f8f9fa] antialiased selection:bg-blue-200">
         <EnvironmentInjector />
+        <EmergencyHotkey />
         <Header />
         <div className="flex flex-1 flex-col">
           <Routes>

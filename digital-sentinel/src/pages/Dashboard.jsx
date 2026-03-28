@@ -47,7 +47,9 @@ export default function Dashboard() {
       ? rawTime
       : (() => {
           const d = new Date(rawTime);
-          return Number.isNaN(d.getTime()) ? new Date().getHours() : d.getHours();
+          return Number.isNaN(d.getTime())
+            ? new Date().getHours()
+            : d.getHours();
         })();
   const coords = location.state?.coords ?? null;
   const mode = location.state?.mode ?? "walking";
@@ -116,7 +118,14 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [focalPoint?.lat, focalPoint?.lng, searchTarget, profile, mode, reportMode]);
+  }, [
+    focalPoint?.lat,
+    focalPoint?.lng,
+    searchTarget,
+    profile,
+    mode,
+    reportMode,
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -221,7 +230,11 @@ export default function Dashboard() {
   if (loading) {
     return (
       <PageMain className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4" role="status" aria-live="polite">
+        <div
+          className="flex flex-col items-center gap-4"
+          role="status"
+          aria-live="polite"
+        >
           <span className="material-symbols-outlined animate-spin text-blue-600 text-4xl">
             sync
           </span>
@@ -239,13 +252,19 @@ export default function Dashboard() {
         <nav aria-label="Breadcrumb" className="mb-4 text-sm">
           <ol className="flex flex-wrap items-center gap-2 text-slate-500">
             <li>
-              <Link to={PATHS.home} className="font-semibold hover:text-blue-600">
+              <Link
+                to={PATHS.home}
+                className="font-semibold hover:text-blue-600"
+              >
                 Home
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
-              <Link to={PATHS.assess} className="font-semibold hover:text-blue-600">
+              <Link
+                to={PATHS.assess}
+                className="font-semibold hover:text-blue-600"
+              >
                 Safety check
               </Link>
             </li>
@@ -262,8 +281,12 @@ export default function Dashboard() {
             className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950"
           >
             <p>
-              No assessment context — <strong>demo report</strong> for <strong>{searchTarget}</strong>.{" "}
-              <Link to={PATHS.assess} className="font-bold text-blue-700 underline hover:no-underline">
+              No assessment context — <strong>demo report</strong> for{" "}
+              <strong>{searchTarget}</strong>.{" "}
+              <Link
+                to={PATHS.assess}
+                className="font-bold text-blue-700 underline hover:no-underline"
+              >
                 Run a safety check
               </Link>
               .
@@ -276,8 +299,13 @@ export default function Dashboard() {
             aria-label="Here mode"
             className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
           >
-            <strong className="font-headline">Right where you are</strong> — this view is built around your current area. Checking a trip instead?{" "}
-            <Link to={PATHS.assess} className="font-bold text-blue-700 underline hover:no-underline">
+            <strong className="font-headline">Right where you are</strong> —
+            this view is built around your current area. Checking a trip
+            instead?{" "}
+            <Link
+              to={PATHS.assess}
+              className="font-bold text-blue-700 underline hover:no-underline"
+            >
               Switch to travel mode
             </Link>
             .
@@ -287,7 +315,9 @@ export default function Dashboard() {
         <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="font-headline text-2xl font-extrabold text-slate-800 md:text-3xl">
-              {reportMode === REPORT_MODE.HERE ? "Safety around you" : "Safety for your trip"}
+              {reportMode === REPORT_MODE.HERE
+                ? "Safety around you"
+                : "Safety for your trip"}
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
               {reportMode === REPORT_MODE.HERE
@@ -300,7 +330,9 @@ export default function Dashboard() {
               to={PATHS.assess}
               className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-blue-700"
             >
-              <span className="material-symbols-outlined text-[18px]">tune</span>
+              <span className="material-symbols-outlined text-[18px]">
+                tune
+              </span>
               Change place or mode
             </Link>
             <button
@@ -330,20 +362,30 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div>
-                  <h2 id="ai-spotlight-heading" className="font-headline text-xl font-extrabold text-slate-800 md:text-2xl">
+                  <h2
+                    id="ai-spotlight-heading"
+                    className="font-headline text-xl font-extrabold text-slate-800 md:text-2xl"
+                  >
                     Sentinel AI
                   </h2>
-                  <p className="text-sm text-slate-600">Plain-language summary for your situation</p>
+                  <p className="text-sm text-slate-600">
+                    Plain-language summary for your situation
+                  </p>
                 </div>
               </div>
             </div>
             <p className="mt-6 text-base leading-relaxed text-slate-700 md:text-lg">
-              {positionIntel.ai?.answer || positionIntel.ai?.reply || "Summary will appear when location data is available."}
+              {positionIntel.ai?.answer ||
+                positionIntel.ai?.reply ||
+                "Summary will appear when location data is available."}
             </p>
           </section>
         )}
 
-        <section aria-labelledby="score-brief-heading" className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <section
+          aria-labelledby="score-brief-heading"
+          className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-12"
+        >
           <h2 id="score-brief-heading" className="sr-only">
             Score and intelligence brief
           </h2>
@@ -359,7 +401,9 @@ export default function Dashboard() {
               <div className="flex items-baseline gap-2">
                 <p className="font-headline text-6xl font-extrabold text-slate-800">
                   {data?.safetyScore}
-                  <span className="text-2xl font-medium text-slate-400">/100</span>
+                  <span className="text-2xl font-medium text-slate-400">
+                    /100
+                  </span>
                 </p>
               </div>
               <p
@@ -375,7 +419,10 @@ export default function Dashboard() {
               </p>
             </div>
             <p className="mt-8 text-sm leading-relaxed text-slate-600">
-              For <span className="font-bold text-slate-800">{data?.location}</span> we combine live signals, infrastructure cues, and recent activity into one score.
+              For{" "}
+              <span className="font-bold text-slate-800">{data?.location}</span>{" "}
+              we combine live signals, infrastructure cues, and recent activity
+              into one score.
             </p>
           </article>
 
@@ -432,7 +479,10 @@ export default function Dashboard() {
                 </span>
               </div>
               <div>
-                <h2 id="weather-heading" className="font-headline text-lg font-extrabold text-slate-800">
+                <h2
+                  id="weather-heading"
+                  className="font-headline text-lg font-extrabold text-slate-800"
+                >
                   Weather at this location
                 </h2>
                 <p className="text-xs text-slate-500">
@@ -448,13 +498,16 @@ export default function Dashboard() {
                 <p className="text-sm text-slate-600">
                   Wind {weather.windspeed} m/s
                   {weather.weathercode != null && (
-                    <span className="block text-xs text-slate-500">Code {weather.weathercode}</span>
+                    <span className="block text-xs text-slate-500">
+                      Code {weather.weathercode}
+                    </span>
                   )}
                 </p>
               </div>
             ) : (
               <p className="text-sm text-slate-500">
-                Waiting for coordinates… If this stays empty, run Safety check with a clear place name.
+                Waiting for coordinates… If this stays empty, run Safety check
+                with a clear place name.
               </p>
             )}
           </div>
@@ -476,17 +529,21 @@ export default function Dashboard() {
                 {positionIntel.quick?.score ?? "—"}
                 <span className="text-lg font-medium text-slate-400">/100</span>
               </p>
-              <p className="mt-2 text-xs text-slate-600">Quick read for this point on the map.</p>
+              <p className="mt-2 text-xs text-slate-600">
+                Quick read for this point on the map.
+              </p>
             </article>
             <article className="rounded-2xl border border-slate-200/50 bg-white p-6 shadow-md lg:col-span-4">
               <h3 className="font-headline text-sm font-extrabold uppercase tracking-wider text-slate-500">
                 What’s driving the score
               </h3>
               <p className="mt-2 text-sm font-bold text-slate-800">
-                {positionIntel.detail?.riskLevel ?? "—"} · {positionIntel.detail?.score ?? "—"}/100
+                {positionIntel.detail?.riskLevel ?? "—"} ·{" "}
+                {positionIntel.detail?.score ?? "—"}/100
               </p>
               <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                {(positionIntel.detail?.factors || []).join(" · ") || "No extra detail returned."}
+                {(positionIntel.detail?.factors || []).join(" · ") ||
+                  "No extra detail returned."}
               </p>
             </article>
             <article className="rounded-2xl border border-slate-200/50 bg-white p-6 shadow-md lg:col-span-4">
@@ -494,16 +551,21 @@ export default function Dashboard() {
                 Reports nearby
               </h3>
               <p className="mt-2 font-headline text-3xl font-black text-rose-600">
-                {Array.isArray(positionIntel.nearby) ? positionIntel.nearby.length : 0}
+                {Array.isArray(positionIntel.nearby)
+                  ? positionIntel.nearby.length
+                  : 0}
               </p>
-              <p className="text-xs text-slate-600">Community or official reports in the area we’re watching.</p>
+              <p className="text-xs text-slate-600">
+                Community or official reports in the area we’re watching.
+              </p>
             </article>
             <article className="rounded-2xl border border-slate-200/50 bg-white p-6 shadow-md lg:col-span-12">
               <h3 className="font-headline text-sm font-extrabold uppercase tracking-wider text-slate-500">
                 Heat near you
               </h3>
               <p className="mt-2 text-sm text-slate-700">
-                {Array.isArray(positionIntel.microHeat) && positionIntel.microHeat.length > 0
+                {Array.isArray(positionIntel.microHeat) &&
+                positionIntel.microHeat.length > 0
                   ? `We found ${positionIntel.microHeat.length} risk “patches” around this spot — on the map, greener tends to mean calmer and warmer colors mean pay more attention.`
                   : "No local heat pattern returned — the map may still show the wider area view."}
               </p>
@@ -514,11 +576,15 @@ export default function Dashboard() {
         <section aria-labelledby="sentinel-chat-heading" className="mb-12">
           <div className="overflow-hidden rounded-2xl border-2 border-indigo-200 bg-white shadow-lg">
             <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-4 text-white md:px-6 md:py-5">
-              <h2 id="sentinel-chat-heading" className="font-headline text-xl font-extrabold md:text-2xl">
+              <h2
+                id="sentinel-chat-heading"
+                className="font-headline text-xl font-extrabold md:text-2xl"
+              >
                 Sentinel chat
               </h2>
               <p className="mt-1 max-w-2xl text-sm font-medium text-white/95">
-                Full-width assistant — ask about safety, this area, or your trip in plain language.
+                Full-width assistant — ask about safety, this area, or your trip
+                in plain language.
               </p>
             </div>
             <div className="grid min-h-[min(420px,55vh)] lg:grid-cols-12">
@@ -529,7 +595,9 @@ export default function Dashboard() {
                 >
                   {chatMessages.length === 0 && (
                     <li className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-700">
-                      No messages yet. Try: &ldquo;Is this area safe after dark?&rdquo; or &ldquo;What should I watch for near transit?&rdquo;
+                      No messages yet. Try: &ldquo;Is this area safe after
+                      dark?&rdquo; or &ldquo;What should I watch for near
+                      transit?&rdquo;
                     </li>
                   )}
                   {chatMessages.map((m, i) => (
@@ -545,7 +613,9 @@ export default function Dashboard() {
                     </li>
                   ))}
                   {assistantLoading && (
-                    <li className="text-xs text-slate-400">Assistant is typing…</li>
+                    <li className="text-xs text-slate-400">
+                      Assistant is typing…
+                    </li>
                   )}
                 </ul>
                 <form
@@ -574,16 +644,27 @@ export default function Dashboard() {
               <aside className="flex flex-col justify-center bg-slate-50/90 p-5 text-sm text-slate-600 lg:col-span-4 lg:p-6">
                 <p className="font-headline font-bold text-slate-800">Tips</p>
                 <ul className="mt-3 list-disc space-y-2 pl-4 text-xs leading-relaxed">
-                  <li>Mention time of day or solo vs group travel for better answers.</li>
-                  <li>Open the map from the header when you want visual context.</li>
-                  <li>Weather above uses Open-Meteo for the same coordinates as this report.</li>
+                  <li>
+                    Mention time of day or solo vs group travel for better
+                    answers.
+                  </li>
+                  <li>
+                    Open the map from the header when you want visual context.
+                  </li>
+                  <li>
+                    Weather above uses Open-Meteo for the same coordinates as
+                    this report.
+                  </li>
                 </ul>
               </aside>
             </div>
           </div>
         </section>
 
-        <section aria-labelledby="breakdown-advisories-heading" className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section
+          aria-labelledby="breakdown-advisories-heading"
+          className="grid grid-cols-1 gap-6 lg:grid-cols-3"
+        >
           <h2 id="breakdown-advisories-heading" className="sr-only">
             Infrastructure breakdown and advisories
           </h2>
@@ -612,7 +693,9 @@ export default function Dashboard() {
                       aria-valuemax={100}
                     />
                   </div>
-                  <span className="text-sm font-bold text-slate-800">{value}%</span>
+                  <span className="text-sm font-bold text-slate-800">
+                    {value}%
+                  </span>
                 </li>
               ))}
             </ul>
@@ -620,7 +703,9 @@ export default function Dashboard() {
 
           <article className="flex flex-col gap-6 rounded-2xl border border-slate-200/50 bg-white p-8 shadow-md">
             <header>
-              <h3 className="font-headline text-xl font-extrabold text-slate-800">System advisories</h3>
+              <h3 className="font-headline text-xl font-extrabold text-slate-800">
+                System advisories
+              </h3>
             </header>
             <ul className="space-y-6">
               {data?.signals?.length > 0 ? (
@@ -629,20 +714,29 @@ export default function Dashboard() {
                     <div
                       className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${s.colorClass}`}
                     >
-                      <span className="material-symbols-outlined text-[18px]">{s.icon}</span>
+                      <span className="material-symbols-outlined text-[18px]">
+                        {s.icon}
+                      </span>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800">{s.title}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">{s.detail}</p>
+                      <p className="text-sm font-bold text-slate-800">
+                        {s.title}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                        {s.detail}
+                      </p>
                     </div>
                   </li>
                 ))
               ) : (
-                <li className="text-sm text-slate-500">No active advisories.</li>
+                <li className="text-sm text-slate-500">
+                  No active advisories.
+                </li>
               )}
             </ul>
             <p className="border-t pt-4 text-xs text-slate-500">
-              Use <strong className="text-slate-700">Sentinel chat</strong> above for follow-up questions — same assistant, larger panel.
+              Use <strong className="text-slate-700">Sentinel chat</strong>{" "}
+              above for follow-up questions — same assistant, larger panel.
             </p>
           </article>
         </section>

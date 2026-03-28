@@ -27,7 +27,7 @@ const PIPELINE = [
   {
     step: "Map",
     detail:
-      "Area warmth (calmer vs hotter), a suggested safer corridor, incident markers, and weather for where you’re looking.",
+      "Area warmth (calmer vs hotter), a suggested safer corridor, incident markers, and weather — plus an AI route copilot, night-travel hints, a shareable trip brief, and an optional buddy check-in timer.",
   },
   {
     step: "SOS (separate)",

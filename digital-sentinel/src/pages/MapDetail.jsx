@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   analyzeRoute,
+  askAi,
   geocodeAddress,
   getCityHeatmap,
   getLocationHeatmap,
@@ -40,6 +41,12 @@ export default function MapDetail() {
   const [showIncidents, setShowIncidents] = useState(true);
   const [weather, setWeather] = useState(null);
 
+  const [copilotText, setCopilotText] = useState("");
+  const [copilotLoading, setCopilotLoading] = useState(false);
+  const [shareStatus, setShareStatus] = useState("");
+  const [buddyUntil, setBuddyUntil] = useState(null);
+  const [clockTick, setClockTick] = useState(0);
+
   const heatLayerRef = useRef(null);
   const radiusHeatLayerRef = useRef(null);
   const safeRouteRef = useRef(null);
@@ -72,6 +79,122 @@ export default function MapDetail() {
           const d = new Date(tripTime);
           return Number.isNaN(d.getTime()) ? new Date().getHours() : d.getHours();
         })();
+
+  const isNightHour = hourForRouteApi >= 21 || hourForRouteApi < 6;
+
+  useEffect(() => {
+    if (buddyUntil == null) return undefined;
+    const id = setInterval(() => setClockTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [buddyUntil]);
+
+  useEffect(() => {
+    if (loading || !routeData || routeData.longHaul) {
+      setCopilotText("");
+      setCopilotLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setCopilotLoading(true);
+    (async () => {
+      const res = await askAi(
+        "In 2-3 short sentences, give practical route safety advice for this specific trip. Mention lighting or visibility if night travel; suggest one concrete habit (e.g. share live location). Stay calm and non-alarmist.",
+        {
+          destination: destinationStr,
+          profile,
+          mode: travelMode,
+          hourLocal: hourForRouteApi,
+          nightTravel: isNightHour,
+          routeScore: routeData.score,
+          riskLevel: routeData.riskLevel,
+          distanceKm: routeData.distanceKm,
+          durationMinutes: routeData.durationMinutes,
+          traffic: routeData.traffic,
+          tempC: weather?.temperature,
+          windMps: weather?.windspeed,
+        },
+      );
+      if (!cancelled) {
+        setCopilotText(typeof res?.answer === "string" ? res.answer.trim() : "");
+        setCopilotLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    loading,
+    routeData?.score,
+    routeData?.longHaul,
+    routeData?.riskLevel,
+    routeData?.distanceKm,
+    routeData?.durationMinutes,
+    routeData?.traffic,
+    destinationStr,
+    profile,
+    travelMode,
+    hourForRouteApi,
+    isNightHour,
+    weather?.temperature,
+    weather?.windspeed,
+  ]);
+
+  const arrivalLabel = useMemo(() => {
+    if (
+      routeData?.durationMinutes == null ||
+      !Number.isFinite(+routeData.durationMinutes) ||
+      routeData.longHaul
+    ) {
+      return null;
+    }
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + Number(routeData.durationMinutes));
+    return d.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }, [routeData?.durationMinutes, routeData?.longHaul]);
+
+  const buddySecondsLeft =
+    buddyUntil != null ? Math.max(0, Math.ceil((buddyUntil - Date.now()) / 1000)) : 0;
+  const buddyDue = buddyUntil != null && Date.now() >= buddyUntil;
+
+  const copyTripBrief = async () => {
+    if (!routeData) return;
+    const lines = [
+      "Digital Sentinel — trip brief",
+      `Destination: ${destinationStr || "—"}`,
+      `Travel: ${profile} · ${travelMode} · local hour ~${hourForRouteApi}`,
+      `Safety score: ${routeData.score ?? "—"}/100 (${routeData.riskLevel ?? "—"})`,
+      routeData.distanceKm != null && Number.isFinite(+routeData.distanceKm)
+        ? `Distance (straight-line est.): ${Number(routeData.distanceKm).toFixed(2)} km`
+        : null,
+      routeData.eta ? `ETA note: ${routeData.eta}` : null,
+      weather != null
+        ? `Weather ~${Math.round(weather.temperature)}°C, wind ${weather.windspeed} m/s`
+        : null,
+      "",
+      "Demo share — not a substitute for emergency services.",
+    ].filter(Boolean);
+    const text = lines.join("\n");
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Trip brief", text });
+        setShareStatus("Shared");
+      } else {
+        await navigator.clipboard.writeText(text);
+        setShareStatus("Copied");
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(text);
+        setShareStatus("Copied");
+      } catch {
+        setShareStatus("");
+      }
+    }
+    window.setTimeout(() => setShareStatus(""), 2800);
+  };
 
   const carryTripState = () =>
     tripNavigationState({
@@ -529,6 +652,21 @@ export default function MapDetail() {
             <p className="mt-1 text-xs text-slate-500">
               Greener = calmer, warmer = more to watch. Use the key on the map.
             </p>
+            <p className="mt-1 text-[10px] text-slate-400">
+              Demo:{" "}
+              <kbd className="rounded border border-slate-200 bg-slate-100 px-1 py-0.5 font-mono text-[9px]">
+                Alt
+              </kbd>
+              +
+              <kbd className="rounded border border-slate-200 bg-slate-100 px-1 py-0.5 font-mono text-[9px]">
+                Shift
+              </kbd>
+              +
+              <kbd className="rounded border border-slate-200 bg-slate-100 px-1 py-0.5 font-mono text-[9px]">
+                E
+              </kbd>{" "}
+              opens Emergency from anywhere.
+            </p>
             <p className="mt-2 text-xs text-slate-400">
               This view uses only the location from your Safety check. To change it, go back to{" "}
               <Link to={PATHS.assess} className="font-semibold text-blue-600 hover:underline">
@@ -554,6 +692,14 @@ export default function MapDetail() {
             ))}
           </div>
 
+          {isNightHour && (
+            <div className="mb-4 shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-xs leading-relaxed text-indigo-950">
+              <span className="font-headline font-bold text-indigo-900">Night travel lens — </span>
+              Lower visibility and quieter streets. Prefer well-lit main routes, avoid headphones at full volume,
+              and share live location with someone you trust.
+            </div>
+          )}
+
           <div className="flex-1 overflow-y-auto pr-3 space-y-6 pb-6 block custom-scrollbar">
             {weather && (
               <div className="mb-4 bg-white p-4 rounded-xl border border-slate-100">
@@ -575,6 +721,63 @@ export default function MapDetail() {
                 </div>
               </div>
             )}
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {arrivalLabel && !routeData?.longHaul && (
+                <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-800">
+                    Arrival window (est.)
+                  </p>
+                  <p className="mt-1 font-headline text-2xl font-extrabold text-emerald-950">
+                    ~{arrivalLabel}
+                  </p>
+                  <p className="mt-2 text-[10px] leading-relaxed text-emerald-900/80">
+                    Straight-line distance at typical {travelMode} speeds — not live traffic.
+                  </p>
+                </div>
+              )}
+              <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-violet-600 text-[22px]">timer</span>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-violet-900">
+                    Buddy check-in
+                  </p>
+                </div>
+                {buddyDue ? (
+                  <p className="mt-2 text-sm font-bold text-rose-700">
+                    Time to message someone — your watch timer completed.
+                  </p>
+                ) : buddyUntil != null ? (
+                  <p
+                    className="mt-2 font-mono text-3xl font-extrabold text-slate-900 tabular-nums"
+                    aria-live="polite"
+                  >
+                    {String(Math.floor(buddySecondsLeft / 60)).padStart(2, "0")}:
+                    {String(buddySecondsLeft % 60).padStart(2, "0")}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                    Start a 15-minute watch for your pitch demo — we surface a reminder to check in.
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBuddyUntil(Date.now() + 15 * 60 * 1000)}
+                    className="rounded-full bg-violet-600 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white hover:bg-violet-700"
+                  >
+                    Start 15 min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBuddyUntil(null)}
+                    className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-violet-800 hover:bg-violet-50"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <div className="flex flex-wrap items-center gap-3 mb-6">
               <label className="flex items-center gap-2 text-sm">
@@ -700,6 +903,41 @@ export default function MapDetail() {
               </p>
             )}
 
+            {!routeData?.longHaul && (
+              <div className="rounded-2xl border border-violet-300/40 bg-gradient-to-br from-slate-900 via-slate-900 to-violet-950 p-5 text-white shadow-xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <span
+                    className="material-symbols-outlined text-violet-300 text-[24px]"
+                    aria-hidden
+                  >
+                    smart_toy
+                  </span>
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-200">
+                    Route copilot (AI)
+                  </h3>
+                </div>
+                {copilotLoading ? (
+                  <p className="flex items-center gap-2 text-sm text-slate-400">
+                    <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
+                    Synthesizing guidance for your trip…
+                  </p>
+                ) : (
+                  <p className="text-sm leading-relaxed text-slate-100">
+                    {copilotText ||
+                      "Connect the backend with Spring AI configured to see live copilot text here."}
+                  </p>
+                )}
+                <Link
+                  to={PATHS.emergency}
+                  state={carryTripState()}
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-rose-300 hover:text-rose-200"
+                >
+                  Open Emergency
+                  <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                </Link>
+              </div>
+            )}
+
             <div className="rounded-2xl border border-slate-200 bg-slate-900 p-6 text-white shadow-xl">
               <div className="mb-5 flex items-end justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -717,6 +955,30 @@ export default function MapDetail() {
                 />
               </div>
             </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Shareable trip brief
+                </p>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Copy or use the device share sheet — great for judges and accountability partners.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={copyTripBrief}
+                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-blue-700"
+              >
+                <span className="material-symbols-outlined text-[18px]">ios_share</span>
+                Share / copy brief
+              </button>
+            </div>
+            {shareStatus ? (
+              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                {shareStatus}
+              </p>
+            ) : null}
 
             <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center text-[0.65rem] leading-relaxed text-slate-600">
               Need help right now? Tap <strong className="text-rose-600">Emergency</strong> at the top.
