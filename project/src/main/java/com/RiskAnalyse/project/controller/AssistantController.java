@@ -17,7 +17,10 @@ public class AssistantController {
     @PostMapping("/chat")
     public ChatResponse chat(@RequestBody ChatRequest request) {
 
-        String reply = assistantService.generateReply(request.getMessage());
+        String reply = assistantService.generateReply(
+                request != null ? request.getMessage() : null,
+                request != null ? request.getContext() : null
+        );
 
         return ChatResponse.builder()
                 .reply(reply)

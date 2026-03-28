@@ -17,8 +17,12 @@
 
 ## Repository layout
 
-- `project/` — Spring Boot application (Maven). Default port **8081**.
+- `project/` — Spring Boot application (Maven). Local default port **8081** (cloud uses `PORT`).
 - `digital-sentinel/` — Vite + React SPA. Point `VITE_GUARDIAN_API_URL` at your backend (e.g. `http://localhost:8081`).
+
+### Deploy for free (hackathon)
+
+See **[DEPLOY.md](./DEPLOY.md)**. **No Docker:** deploy the API on **Railway** (Nixpacks + `project/railway.toml`). **Docker:** use **Render** + `project/Dockerfile`. Frontend: **Vercel** / Netlify (`digital-sentinel/`, `vercel.json`, `public/_redirects`).
 
 ---
 

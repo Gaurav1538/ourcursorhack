@@ -1,0 +1,8 @@
+# Railway: deploy with root directory set to `project` — no Docker required.
+# Nixpacks detects Maven; this pins the start command to the Spring Boot fat JAR.
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "java -jar target/project-0.0.1-SNAPSHOT.jar"
