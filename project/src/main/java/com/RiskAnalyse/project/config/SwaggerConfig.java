@@ -1,8 +1,8 @@
 package com.RiskAnalyse.project.config;
 
-
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server; // ✅ ADD THIS
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,6 +12,9 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
+                .addServersItem(   // ✅ ADD THIS BLOCK
+                        new Server().url("https://ourcursorhack-production.up.railway.app")
+                )
                 .info(new Info()
                         .title("Guardian Safety API")
                         .version("1.0")
