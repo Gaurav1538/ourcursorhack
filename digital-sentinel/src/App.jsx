@@ -1,29 +1,25 @@
-import React, { useState } from 'react';
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import Landing from './pages/Landing';
-import Dashboard from './pages/Dashboard';
-import MapDetail from './pages/MapDetail';
-import Emergency from './pages/Emergency';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Header from './components/layout/Header.jsx';
+import Footer from './components/layout/Footer.jsx';
+import Landing from './pages/Landing.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import MapDetail from './pages/MapDetail.jsx';
+import Emergency from './pages/Emergency.jsx';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('landing');
-
-  const renderPage = () => {
-    switch(currentPage) {
-      case 'landing': return <Landing setCurrentPage={setCurrentPage} />;
-      case 'dashboard': return <Dashboard setCurrentPage={setCurrentPage} />;
-      case 'map': return <MapDetail setCurrentPage={setCurrentPage} />;
-      case 'emergency': return <Emergency />;
-      default: return <Landing setCurrentPage={setCurrentPage} />;
-    }
-  };
-
   return (
-    <div className="bg-background min-h-screen flex flex-col antialiased font-body">
-      <Header currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      {renderPage()}
-      <Footer />
-    </div>
+    <Router>
+      <div className="bg-background min-h-screen flex flex-col antialiased font-body">
+        <Header />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/map" element={<MapDetail />} />
+          <Route path="/emergency" element={<Emergency />} />
+        </Routes>
+        <Footer />
+      </div>
+    </Router>
   );
 }

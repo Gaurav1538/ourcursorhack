@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function MapDetail({ setCurrentPage }) {
+export default function MapDetail() {
+  const navigate = useNavigate();
   const [routeData, setRouteData] = useState(null);
   const [activeTab, setActiveTab] = useState('SAFE ROUTES');
 
@@ -23,7 +25,7 @@ export default function MapDetail({ setCurrentPage }) {
         <div className="p-6 flex flex-col h-full min-h-0">
           
           <button 
-            onClick={() => setCurrentPage('dashboard')}
+            onClick={() => navigate(-1)}
             className="mb-6 flex items-center gap-2 w-fit bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-full transition-colors text-sm font-semibold group"
           >
             <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
@@ -51,7 +53,6 @@ export default function MapDetail({ setCurrentPage }) {
             ))}
           </div>
 
-          {/* Block layout avoids compression issues inside flex */}
           <div className="flex-1 overflow-y-auto pr-3 space-y-6 pb-6 block custom-scrollbar">
             
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
@@ -108,7 +109,6 @@ export default function MapDetail({ setCurrentPage }) {
               </div>
             </div>
 
-            {/* TAB CONTENT RENDERING */}
             {activeTab === 'CRIME DATA' && (
               <div className="p-5 bg-rose-50 rounded-2xl border border-rose-200 animate-[fadeIn_0.3s_ease-out]">
                 <div className="flex items-center gap-2 mb-3">

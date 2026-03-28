@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function Dashboard({ setCurrentPage }) {
+export default function Dashboard() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -25,10 +27,10 @@ export default function Dashboard({ setCurrentPage }) {
   }, []);
 
   return (
-    <main className="pt-24 pb-16 px-6 max-w-7xl mx-auto flex-grow font-body text-slate-900 w-full bg-slate-50 min-h-screen">
+    <main className="pt-24 pb-16 px-6 max-w-[1400px] mx-auto flex-grow font-body text-slate-900 w-full bg-slate-50 min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <button 
-            onClick={() => setCurrentPage('landing')}
+            onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 hover:shadow-md"
         >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -74,7 +76,7 @@ export default function Dashboard({ setCurrentPage }) {
             {data ? data.intelligenceBrief : 'Analyzing local signals...'}
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <button onClick={() => setCurrentPage('map')} className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 text-sm font-bold transition-all active:scale-95 shadow-lg shadow-blue-600/20 hover:bg-blue-700">
+            <button onClick={() => navigate('/map')} className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 text-sm font-bold transition-all active:scale-95 shadow-lg shadow-blue-600/20 hover:bg-blue-700">
               <span className="material-symbols-outlined text-sm">map</span>
               View Local Heatmap
             </button>
@@ -101,7 +103,7 @@ export default function Dashboard({ setCurrentPage }) {
               <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm"></span> High Risk</div>
             </div>
           </div>
-          <div className="relative h-[400px] w-full bg-slate-900 overflow-hidden cursor-pointer" onClick={() => setCurrentPage('map')}>
+          <div className="relative h-[400px] w-full bg-slate-900 overflow-hidden cursor-pointer" onClick={() => navigate('/map')}>
             <img alt="Detailed topographic map" className="w-full h-full object-cover opacity-60 mix-blend-luminosity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZOrpNFoT7acW0teq2L4KjMJqopCMAhmn5jCS1BG9XJevBIzdvhhaJ2aDRKySjbHxrk_Fmj04pQYqLnCdmA-SJGSTUZ39EHZP-Y4YcJ8w9FeN6vaCG_A7q4YQJEjjK0DwKdeSasvEe025KCp9kSCZwt3UlWK68kOhzZfqiI_eomNVbphzQE2dWEAOfXaO_agEJDTtnpyZiEz_XWwV3j7GPh7MhlpNMQPeTGJt5hVlb6KGeCHF9LVvRtU-ZfpuX8Az70o3QJL0qlEI"/>
             
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -192,7 +194,7 @@ export default function Dashboard({ setCurrentPage }) {
             </div>
           </div>
           <button 
-            onClick={() => setCurrentPage('emergency')}
+            onClick={() => navigate('/emergency')}
             className="w-full md:w-auto px-10 py-5 bg-rose-600 text-white font-bold rounded-xl shadow-xl shadow-rose-600/30 hover:bg-rose-700 active:scale-[0.98] transition-all uppercase tracking-widest text-sm text-center flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px]">warning</span>
