@@ -8,6 +8,7 @@ import {
   getSafeRoute,
   getNearbyIncidents,
   getRiskDetailed,
+  normalizeSafeRoutePoint,
 } from "../api";
 import MapLegend from "../components/map/MapLegend";
 import {
@@ -181,19 +182,25 @@ export default function MapDetail() {
 
       // Draw path only when start and end are in the same region (avoids absurd global lines)
       if (!longHaul) {
-        window.L.polyline(
-          [
-            [sourceCoords.lat, sourceCoords.lng],
-            [destCoords.lat, destCoords.lng],
-          ],
-          {
-            color: rData.score > 70 ? "#15803d" : "#d97706",
-            weight: 5,
-            opacity: 0.92,
-            dashArray: "12, 8",
-            lineCap: "round",
-          },
-        ).addTo(map);
+        const wp = Array.isArray(rData.waypoints)
+          ? rData.waypoints
+              .filter((w) => validLatLng(w?.lat, w?.lng))
+              .map((w) => [w.lat, w.lng])
+          : [];
+        const pathLatLngs =
+          wp.length >= 2
+            ? wp
+            : [
+                [sourceCoords.lat, sourceCoords.lng],
+                [destCoords.lat, destCoords.lng],
+              ];
+        window.L.polyline(pathLatLngs, {
+          color: rData.score > 70 ? "#15803d" : "#d97706",
+          weight: 5,
+          opacity: 0.92,
+          dashArray: "12, 8",
+          lineCap: "round",
+        }).addTo(map);
       }
 
       // Start marker only when it’s on the same map view as the destination
@@ -340,14 +347,19 @@ export default function MapDetail() {
               destCoords.lng,
             );
         if (safe && Array.isArray(safe) && safe.length > 1) {
-          const latlngs = safe.map((p) => [p.lat, p.lng]);
-          const safeLayer = window.L.polyline(latlngs, {
-            color: "#15803d",
-            weight: 6,
-            opacity: 0.95,
-          });
-          safeRouteRef.current = safeLayer;
-          if (showSafeRoute) safeLayer.addTo(map);
+          const latlngs = safe
+            .map((p) => normalizeSafeRoutePoint(p))
+            .filter(Boolean)
+            .map((p) => [p.lat, p.lng]);
+          if (latlngs.length >= 2) {
+            const safeLayer = window.L.polyline(latlngs, {
+              color: "#15803d",
+              weight: 6,
+              opacity: 0.95,
+            });
+            safeRouteRef.current = safeLayer;
+            if (showSafeRoute) safeLayer.addTo(map);
+          }
         }
       } catch (e) {
         // ignore safe route failures
@@ -655,6 +667,18 @@ export default function MapDetail() {
                   {routeData?.traffic || "..."}
                 </p>
               </div>
+              <div className="text-center flex-1 border-r border-slate-200">
+                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1.5">
+                  Distance
+                </p>
+                <p className="text-lg font-extrabold text-slate-800">
+                  {routeData?.distanceKm != null && Number.isFinite(+routeData.distanceKm)
+                    ? `${Number(routeData.distanceKm).toFixed(routeData.distanceKm >= 10 ? 1 : 2)} km`
+                    : routeData?.longHaul
+                      ? "—"
+                      : "…"}
+                </p>
+              </div>
               <div className="text-center flex-1">
                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1.5">
                   Est. Time
@@ -664,6 +688,17 @@ export default function MapDetail() {
                 </p>
               </div>
             </div>
+            {routeData?.routeSummary && (
+              <p className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-center text-[0.65rem] text-slate-600">
+                {routeData.routeSummary}
+                {routeData?.durationMinutes != null && Number.isFinite(+routeData.durationMinutes) && (
+                  <>
+                    {" "}
+                    · ~{routeData.durationMinutes} min at typical {routeData.mode || "walking"} speeds
+                  </>
+                )}
+              </p>
+            )}
 
             <div className="rounded-2xl border border-slate-200 bg-slate-900 p-6 text-white shadow-xl">
               <div className="mb-5 flex items-end justify-between">

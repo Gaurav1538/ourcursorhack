@@ -109,7 +109,7 @@ export default function Emergency() {
         /* keep queryCity; API still returns city-based fallbacks */
       }
       const data = await getEmergencyServices(queryCity, lat, lng);
-      setServices(Array.isArray(data) ? data.slice(0, 4) : []);
+      setServices(Array.isArray(data) ? data.slice(0, 8) : []);
       setLoadingServices(false);
     };
     fetchServices();
@@ -442,40 +442,73 @@ export default function Emergency() {
                   Loading nearby listings…
                 </p>
               ) : (
-                services.map((svc, idx) => (
+                services.map((svc, idx) => {
+                  const icon =
+                    svc.type === "hospital"
+                      ? "medical_services"
+                      : svc.type === "fire"
+                        ? "local_fire_department"
+                        : "local_police";
+                  const tone =
+                    svc.type === "hospital"
+                      ? "bg-rose-50 text-rose-600"
+                      : svc.type === "fire"
+                        ? "bg-orange-50 text-orange-600"
+                        : "bg-blue-50 text-blue-600";
+                  const openInMaps = () => {
+                    if (svc.lat == null || svc.lon == null) return;
+                    const q = `${svc.lat},${svc.lon}`;
+                    window.open(
+                      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,
+                      "_blank",
+                      "noopener,noreferrer",
+                    );
+                  };
+                  return (
                   <div
-                    key={idx}
+                    key={`${svc.name}-${idx}`}
                     className="bg-white p-5 rounded-2xl flex items-center justify-between group hover:shadow-lg transition-all duration-300 border border-slate-100"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ${svc.type === "hospital" ? "bg-rose-50 text-rose-600" : "bg-blue-50 text-blue-600"}`}
+                        className={`w-12 h-12 shrink-0 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ${tone}`}
                       >
                         <span
                           className="material-symbols-outlined text-[22px]"
                           style={{ fontVariationSettings: "'FILL' 1" }}
                         >
-                          {svc.type === "hospital"
-                            ? "medical_services"
-                            : "local_police"}
+                          {icon}
                         </span>
                       </div>
-                      <div>
-                        <p className="font-headline font-bold text-slate-900">
+                      <div className="min-w-0">
+                        <p className="font-headline font-bold text-slate-900 truncate">
                           {svc.name}
                         </p>
                         <p className="text-xs text-slate-500 font-medium mt-0.5">
                           {svc.distance} • ETA {svc.eta}
+                          {svc.source === "osm" && (
+                            <span className="ml-1 text-emerald-600 font-semibold">· OSM</span>
+                          )}
                         </p>
+                        {svc.address && (
+                          <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">{svc.address}</p>
+                        )}
                       </div>
                     </div>
-                    <button className="w-10 h-10 bg-slate-50 text-slate-600 rounded-full flex items-center justify-center hover:bg-slate-900 hover:text-white transition-colors active:scale-95 shrink-0">
+                    <button
+                      type="button"
+                      onClick={openInMaps}
+                      disabled={svc.lat == null || svc.lon == null}
+                      title={svc.lat != null && svc.lon != null ? "Open in maps" : "No coordinates (demo listing)"}
+                      className="w-10 h-10 bg-slate-50 text-slate-600 rounded-full flex items-center justify-center hover:bg-slate-900 hover:text-white transition-colors active:scale-95 shrink-0 disabled:opacity-40 disabled:pointer-events-none"
+                    >
                       <span className="material-symbols-outlined text-[18px]">
-                        near_me
+                        map
                       </span>
                     </button>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
 

@@ -57,6 +57,14 @@ export const analyzeRoute = async (p) =>
       riskLevel: 'Safe',
       eta: '24 mins',
       traffic: 'Moderate',
+      distanceKm: 2.4,
+      durationMinutes: 24,
+      mode: p.mode || 'walking',
+      routeSummary: 'Offline fallback — connect backend for live metrics',
+      waypoints: [
+        { lat: p.startLat ?? 51.5, lng: p.startLng ?? -0.12 },
+        { lat: p.endLat ?? 51.512, lng: p.endLng ?? -0.125 },
+      ],
       hotspots: [
         { lat: p.endLat ?? 51.512, lng: p.endLng ?? -0.125, risk: 'High' },
         { lat: (p.endLat ?? 51.51) - 0.002, lng: (p.endLng ?? -0.12) + 0.002, risk: 'Moderate' },
@@ -151,6 +159,15 @@ export const getTrends = async () =>
     weeklyIncidents: [12, 15, 8, 10, 5, 7, 4],
   });
 
+/** Normalize backend safe-route points (supports legacy latitude/longitude). */
+export function normalizeSafeRoutePoint(p) {
+  if (!p || typeof p !== 'object') return null;
+  const lat = p.lat ?? p.latitude;
+  const lng = p.lng ?? p.longitude;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng, riskScore: p.riskScore };
+}
+
 export const getSafeRoute = async (slat, slng, elat, elng) =>
   callApi(
     `/api/route/safe?startLat=${slat}&startLng=${slng}&endLat=${elat}&endLng=${elng}`,
@@ -216,12 +233,25 @@ function mockEmergencyList(city, lat, lng) {
 }
 
 /** Pass lat/lng from browser GPS or geocoded address so listings/distance vary by location */
-export const getEmergencyServices = async (city, lat, lng) => {
+export const getEmergencyServices = async (city, lat, lng, radiusMeters = 10000) => {
   const q = new URLSearchParams();
   q.set('city', city && String(city).trim() ? city : 'Unknown');
   if (lat != null && lng != null && Number.isFinite(+lat) && Number.isFinite(+lng)) {
     q.set('lat', String(lat));
     q.set('lon', String(lng));
+    if (radiusMeters != null && Number.isFinite(+radiusMeters)) {
+      q.set('radiusMeters', String(Math.min(500000, Math.max(500, Math.round(+radiusMeters)))));
+    }
   }
   return callApi(`/api/emergency?${q.toString()}`, {}, mockEmergencyList(city, lat, lng));
+};
+
+/** Direct coordinate query (backend GET /api/emergency/nearby). */
+export const getEmergencyNearby = async (lat, lng, radiusMeters = 10000) => {
+  const r = Math.min(500000, Math.max(500, Math.round(radiusMeters)));
+  return callApi(
+    `/api/emergency/nearby?lat=${lat}&lng=${lng}&radiusMeters=${r}`,
+    {},
+    mockEmergencyList('Near you', lat, lng),
+  );
 };

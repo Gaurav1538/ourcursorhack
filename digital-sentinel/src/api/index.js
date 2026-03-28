@@ -19,4 +19,6 @@ export {
   getCityHeatmap,
   getLocationHeatmap,
   getEmergencyServices,
+  getEmergencyNearby,
+  normalizeSafeRoutePoint,
 } from './guardian.js';
