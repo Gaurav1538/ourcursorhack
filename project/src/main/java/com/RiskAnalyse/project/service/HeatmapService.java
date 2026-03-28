@@ -23,10 +23,12 @@ public class HeatmapService {
 
         List<HeatmapPoint> result = new ArrayList<>();
 
-        double step = 0.002; // ~200m grid
+        /* Sparser grid (~500m step, smaller span) — fewer circles on the map */
+        double step = 0.005;
+        double span = 0.01;
 
-        for (double lat = centerLat - 0.01; lat <= centerLat + 0.01; lat += step) {
-            for (double lng = centerLng - 0.01; lng <= centerLng + 0.01; lng += step) {
+        for (double lat = centerLat - span; lat <= centerLat + span + 1e-9; lat += step) {
+            for (double lng = centerLng - span; lng <= centerLng + span + 1e-9; lng += step) {
 
                 double risk = riskService.calculateRisk(lat, lng);
 

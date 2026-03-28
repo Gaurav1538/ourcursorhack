@@ -18,7 +18,11 @@ public class EmergencyController {
     private final EmergencyService emergencyService;
 
     @GetMapping
-    public List<EmergencyResponse> getEmergency(@RequestParam String city) {
-        return emergencyService.getNearby(city);
+    public List<EmergencyResponse> getEmergency(
+            @RequestParam String city,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon
+    ) {
+        return emergencyService.getNearby(city, lat, lon);
     }
 }

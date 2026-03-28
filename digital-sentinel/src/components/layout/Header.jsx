@@ -1,50 +1,64 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from "react";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import { PATHS } from "../../constants/journey";
+
+const navClass = ({ isActive }) =>
+  `pb-1 font-headline text-sm font-semibold tracking-tight transition-colors ${
+    isActive
+      ? "border-b-2 border-blue-600 text-blue-600"
+      : "text-slate-500 hover:text-blue-900"
+  }`;
 
 export default function Header() {
   const location = useLocation();
-  const currentPath = location.pathname;
+  const onEmergency = location.pathname === PATHS.emergency;
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm">
-      <div className="flex justify-between items-center px-6 h-16 w-full max-w-[1400px] mx-auto">
-        <Link 
-            to="/"
-            className="text-xl font-bold tracking-tighter text-[#0e1c2b] font-headline hover:opacity-80 transition-opacity"
+    <header className="fixed top-0 z-50 w-full border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur-xl">
+      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between px-6">
+        <Link
+          to={PATHS.home}
+          className="font-headline text-xl font-bold tracking-tighter text-[#0e1c2b] transition-opacity hover:opacity-80"
         >
-            Digital Sentinel
+          Digital Sentinel
         </Link>
-        
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link 
-            to="/dashboard"
-            className={`pb-1 font-headline font-semibold tracking-tight text-sm active:scale-95 duration-200 transition-colors ${currentPath === '/dashboard' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-blue-900'}`}
-          >
-            Dashboard
-          </Link>
-          <Link 
-            to="/map"
-            className={`pb-1 font-headline font-semibold tracking-tight text-sm active:scale-95 duration-200 transition-colors ${currentPath === '/map' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-blue-900'}`}
-          >
-            Map View
-          </Link>
+
+        <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
+          <NavLink to={PATHS.home} className={navClass} end>
+            Home
+          </NavLink>
+          <NavLink to={PATHS.assess} className={navClass}>
+            Safety check
+          </NavLink>
+          <NavLink to={PATHS.insights} className={navClass}>
+            Insights
+          </NavLink>
+          <NavLink to={PATHS.map} className={navClass}>
+            Map
+          </NavLink>
+          <NavLink to={PATHS.howItWorks} className={navClass}>
+            How it works
+          </NavLink>
         </nav>
 
-        <div className="flex items-center space-x-4 md:space-x-6">
-          <div className="hidden md:flex items-center space-x-4">
-            <button className="p-2 text-slate-500 hover:text-blue-600 transition-colors active:scale-95 duration-200">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-            <button className="p-2 text-slate-500 hover:text-blue-600 transition-colors active:scale-95 duration-200">
-              <span className="material-symbols-outlined">account_circle</span>
-            </button>
-          </div>
-          
-          <Link 
-            to="/emergency"
-            className={`px-5 py-2 rounded-full text-white font-headline font-bold text-sm active:scale-95 duration-200 shadow-lg flex items-center gap-2 transition-all ${currentPath === '/emergency' ? 'bg-[#ba1a1a] shadow-red-500/30' : 'bg-rose-600 hover:bg-rose-700 hover:shadow-rose-600/30'}`}
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link
+            to={PATHS.emergency}
+            state={location.state}
+            aria-label="Emergency help"
+            title="Get help now"
+            className={`flex items-center gap-2 rounded-full px-4 py-2 font-headline text-sm font-bold text-white shadow-lg transition-all md:px-5 ${
+              onEmergency
+                ? "bg-[#ba1a1a] shadow-red-500/30"
+                : "bg-rose-600 hover:bg-rose-700 hover:shadow-rose-600/30"
+            }`}
           >
-            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
+            <span
+              className="material-symbols-outlined text-[18px]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              error
+            </span>
             Emergency
           </Link>
         </div>
