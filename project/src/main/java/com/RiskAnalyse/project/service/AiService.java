@@ -1,15 +1,21 @@
 package com.RiskAnalyse.project.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 public class AiService {
 
     private final ChatClient chatClient;
+    private final ObjectMapper objectMapper;
 
-    public AiService(ChatClient chatClient) {
+    public AiService(ChatClient chatClient, ObjectMapper objectMapper) {
         this.chatClient = chatClient;
+        this.objectMapper = objectMapper;
     }
 
     public String explainRisk(double lat, double lng, double risk) {
@@ -59,5 +65,25 @@ public class AiService {
     """.formatted(userInput);
 
         return chatClient.prompt(prompt).call().content();
+    }
+
+    /**
+     * Builds one user message from a free-form prompt plus optional structured context (for maps, routes, etc.).
+     */
+    public String chatWithContext(String prompt, Map<String, Object> context) {
+        String p = prompt == null ? "" : prompt.trim();
+        if (p.isEmpty()) {
+            p = "Give a brief safety tip.";
+        }
+        if (context == null || context.isEmpty()) {
+            return chat(p);
+        }
+        try {
+            String json = objectMapper.writeValueAsString(context);
+            String augmented = p + "\n\nStructured context (JSON):\n" + json;
+            return chat(augmented);
+        } catch (JsonProcessingException e) {
+            return chat(p);
+        }
     }
 }

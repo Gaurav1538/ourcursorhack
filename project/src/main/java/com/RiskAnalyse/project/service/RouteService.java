@@ -2,6 +2,7 @@ package com.RiskAnalyse.project.service;
 
 import com.RiskAnalyse.project.dto.request.RouteRequest;
 import com.RiskAnalyse.project.dto.response.RouteResponse;
+import com.RiskAnalyse.project.dto.response.SafeRoutePoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,12 @@ public class RouteService {
                 emergencyScore
         );
 
+        String modeLabel = request.getMode() != null ? request.getMode() : "walking";
+        Double distanceKm = null;
+        Integer durationMinutes = null;
+        String routeSummary = null;
+        List<RouteResponse.Waypoint> waypoints = null;
+
         String eta;
         if (request.getStartLat() != null && request.getStartLng() != null
                 && request.getEndLat() != null && request.getEndLng() != null) {
@@ -37,13 +44,20 @@ public class RouteService {
                     request.getStartLat(), request.getStartLng(),
                     request.getEndLat(), request.getEndLng()
             );
+            distanceKm = round2(km);
+            int minutes = estimateEtaMinutes(km, request.getMode());
+            durationMinutes = minutes;
+            routeSummary = "Straight-line estimate ~" + round1(km) + " km (" + modeLabel + ")";
+            waypoints = buildWaypoints(
+                    request.getStartLat(), request.getStartLng(),
+                    request.getEndLat(), request.getEndLng(),
+                    16
+            );
             if (km > 200) {
                 eta = "— (segment too long for a single ETA)";
             } else if (km > 100) {
-                int minutes = estimateEtaMinutes(km, request.getMode());
                 eta = minutes + "+ mins (approx)";
             } else {
-                int minutes = estimateEtaMinutes(km, request.getMode());
                 eta = minutes + " mins";
             }
         } else {
@@ -55,8 +69,35 @@ public class RouteService {
                 .riskLevel(getRiskLevel(score))
                 .eta(eta)
                 .traffic(random.nextBoolean() ? "Moderate" : "Light")
+                .distanceKm(distanceKm)
+                .durationMinutes(durationMinutes)
+                .mode(modeLabel)
+                .routeSummary(routeSummary)
+                .waypoints(waypoints)
                 .hotspots(generateHotspots(request.getEndLat(), request.getEndLng(), random))
                 .build();
+    }
+
+    private static List<RouteResponse.Waypoint> buildWaypoints(
+            double startLat, double startLng, double endLat, double endLng, int segments
+    ) {
+        List<RouteResponse.Waypoint> list = new ArrayList<>(segments + 1);
+        for (int i = 0; i <= segments; i++) {
+            double t = i / (double) segments;
+            list.add(RouteResponse.Waypoint.builder()
+                    .lat(startLat + (endLat - startLat) * t)
+                    .lng(startLng + (endLng - startLng) * t)
+                    .build());
+        }
+        return list;
+    }
+
+    private static double round1(double v) {
+        return Math.round(v * 10.0) / 10.0;
+    }
+
+    private static double round2(double v) {
+        return Math.round(v * 100.0) / 100.0;
     }
 
     private static double haversineKm(double lat1, double lon1, double lat2, double lon2) {
@@ -127,12 +168,12 @@ public class RouteService {
         );
     }
 
-    public List<Object> getSafeRoute(
+    public List<SafeRoutePoint> getSafeRoute(
             double startLat, double startLng,
             double endLat, double endLng
     ) {
 
-        List<Object> route = new ArrayList<>();
+        List<SafeRoutePoint> route = new ArrayList<>();
 
         int steps = 10;
 
@@ -143,11 +184,11 @@ public class RouteService {
 
             double risk = riskService.calculateRisk(lat, lng);
 
-            route.add(new Object() {
-                public final double latitude = lat;
-                public final double longitude = lng;
-                public final double riskScore = risk;
-            });
+            route.add(SafeRoutePoint.builder()
+                    .lat(lat)
+                    .lng(lng)
+                    .riskScore(risk)
+                    .build());
         }
 
         return route;
