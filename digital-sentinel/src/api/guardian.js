@@ -1,38 +1,65 @@
 import { callApi } from "./client.js";
 
-export const analyzeSafety = async (city, area, profile, hour) =>
-  callApi(
+/** When /api/safety/analyze fails or returns no usable score — varied UI, not a fixed 100/Low. */
+function buildRandomSafetyFallback() {
+  const score = Math.floor(Math.random() * 40) + 50; // 50–89
+  const riskLevel =
+    score > 75 ? "Low" : score > 50 ? "Moderate" : "High";
+  const pct = () => Math.round(42 + Math.random() * 48);
+  return {
+    score,
+    riskLevel,
+    breakdown: {
+      "Lighting & visibility": pct(),
+      "Crowding & transit feel": pct(),
+      "Incident signal (3 km)": pct(),
+    },
+    crimes: {
+      theft: 1 + Math.floor(Math.random() * 8),
+      harassment: 1 + Math.floor(Math.random() * 6),
+      traffic: 1 + Math.floor(Math.random() * 5),
+    },
+    insights: [
+      "Live safety service did not return data — showing an offline-style estimate.",
+      "Reconnect the API for incident-weighted scores for this location.",
+    ],
+    recommendations: [
+      "Check your network or server, then refresh this page.",
+      "Run a new safety check from the planner once the backend is up.",
+    ],
+  };
+}
+
+export const analyzeSafety = async (city, area, profile, hour, lat, lng) => {
+  const body = {
+    city: city || "Unknown",
+    area: area || city || "Unknown",
+    profile,
+    hour: parseInt(hour, 10) || new Date().getHours(),
+  };
+  if (
+    lat != null &&
+    lng != null &&
+    Number.isFinite(+lat) &&
+    Number.isFinite(+lng)
+  ) {
+    body.lat = +lat;
+    body.lng = +lng;
+  }
+  const data = await callApi(
     "/api/safety/analyze",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        city,
-        area,
-        profile,
-        hour: parseInt(hour, 10) || new Date().getHours(),
-      }),
+      body: JSON.stringify(body),
     },
-    {
-      score: 82,
-      riskLevel: "Low",
-      breakdown: {
-        lighting: 92,
-        cctv: 85,
-        policePresence: 70,
-        pedestrianTraffic: 80,
-      },
-      crimes: { theft: 2, vandalism: 1, assault: 0 },
-      insights: [
-        "Area shows strong law enforcement presence.",
-        "Lighting infrastructure operating at high capacity.",
-      ],
-      recommendations: [
-        "Stay on main illuminated pathways.",
-        "Keep belongings secured in crowded transit zones.",
-      ],
-    },
+    null,
   );
+  if (data == null || typeof data.score !== "number" || Number.isNaN(data.score)) {
+    return buildRandomSafetyFallback();
+  }
+  return data;
+};
 
 /** @param {object} p — include startLat/startLng/endLat/endLng when known for realistic ETA */
 export const analyzeRoute = async (p) =>

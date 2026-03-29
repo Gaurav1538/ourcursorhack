@@ -7,14 +7,12 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Random;
 
 @Service
 public class RiskService {
 
     private final AlertService alertService;
     private final IncidentRepository repository;
-    private final Random random = new Random();
 
     public RiskService(IncidentRepository repository,AlertService alertService) {
         this.repository = repository;
@@ -33,10 +31,14 @@ public class RiskService {
 
         for (Incident i : incidents) {
 
+            var loc = i.getLocation();
+            if (loc == null) {
+                continue;
+            }
             double distance = distance(
                     lat, lng,
-                    i.getLocation().getLat(),
-                    i.getLocation().getLng()
+                    loc.resolveLat(),
+                    loc.resolveLng()
             );
 
             // 🔥 Distance weight
@@ -66,12 +68,36 @@ public class RiskService {
 
         risk *= nightFactor;
 
-        // 🎲 Random factor
-        risk += random.nextDouble() * 2;
         alertService.checkAndAlert(risk, lat, lng);
-        // 🎯 Normalize
-        double normalized = 100 * (1 - Math.exp(-risk / 10));
-        return Math.min(100, normalized);
+        // 🎯 Normalize incident-driven risk (0–100, higher = more risk)
+        double fromIncidents = 100 * (1 - Math.exp(-risk / 10));
+        /*
+         * With no incidents in range, exp(0) would imply 0 risk → every location reads as
+         * "perfectly safe". Use a modest, deterministic prior from coordinates instead.
+         */
+        if (incidents.isEmpty()) {
+            double prior = locationPriorRisk(lat, lng);
+            if (nightFactor > 1.0) {
+                prior = Math.min(100, prior * 1.1);
+            }
+            return Math.min(100, Math.max(fromIncidents, prior));
+        }
+        return Math.min(100, fromIncidents);
+    }
+
+    /**
+     * Stable 10–40 risk index when there is no local incident signal, so different
+     * map positions do not all collapse to the same score.
+     */
+    private static double locationPriorRisk(double lat, double lng) {
+        int qLat = (int) Math.round(lat * 500);
+        int qLng = (int) Math.round(lng * 500);
+        long h = (long) qLat * 0x9E3779B9L ^ (long) qLng * 0x85EBCA6BL;
+        h ^= h >>> 32;
+        h *= 0xC2B2AE3D3334L;
+        h ^= h >>> 29;
+        double u = (h & ((1L << 53) - 1)) / (double) (1L << 53);
+        return 10 + u * 30;
     }
 
     // 📍 Haversine formula

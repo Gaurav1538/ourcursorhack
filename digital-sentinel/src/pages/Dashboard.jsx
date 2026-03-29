@@ -128,17 +128,30 @@ export default function Dashboard() {
   ]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    let cancelled = false;
+    (async () => {
       setLoading(true);
+      let lat = focalPoint?.lat;
+      let lng = focalPoint?.lng;
+      if (lat == null || lng == null) {
+        const g = await geocodeAddress(searchTarget);
+        if (g?.lat != null && g?.lng != null) {
+          lat = g.lat;
+          lng = g.lng;
+        }
+      }
       const result = await analyzeSafety(
         searchTarget,
         searchTarget,
         profile,
         time,
+        lat,
+        lng,
       );
-
+      if (cancelled) return;
       setData({
-        safetyScore: result.score || 82,
+        safetyScore:
+          typeof result?.score === "number" ? result.score : 82,
         riskLevel: result.riskLevel || "Low",
         location: searchTarget,
         intelligenceBrief:
@@ -156,9 +169,11 @@ export default function Dashboard() {
         breakdown: result.breakdown || { lighting: 90, cctv: 85 },
       });
       setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
     };
-    fetchData();
-  }, [searchTarget, profile, time]);
+  }, [searchTarget, profile, time, focalPoint?.lat, focalPoint?.lng]);
 
   useEffect(() => {
     const fetchTrends = async () => {

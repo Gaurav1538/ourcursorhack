@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface AreaRepository extends MongoRepository<Area, String> {
 
     Optional<Area> findByCityAndAreaName(String city, String areaName);
+
+    Optional<Area> findFirstByCityIgnoreCase(String city);
 }

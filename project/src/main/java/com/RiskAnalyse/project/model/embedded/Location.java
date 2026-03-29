@@ -23,4 +23,22 @@ public class Location {
     public void generateCoordinates() {
         this.coordinates = Arrays.asList(lng, lat);
     }
+
+    /**
+     * Lat/lng used for distance math must match GeoJSON {@code coordinates} ([lng, lat]),
+     * otherwise Mongo {@code $near} and Haversine disagree and every incident can appear at (0,0).
+     */
+    public double resolveLat() {
+        if (coordinates != null && coordinates.size() >= 2 && coordinates.get(1) != null) {
+            return coordinates.get(1);
+        }
+        return lat;
+    }
+
+    public double resolveLng() {
+        if (coordinates != null && coordinates.size() >= 2 && coordinates.get(0) != null) {
+            return coordinates.get(0);
+        }
+        return lng;
+    }
 }
